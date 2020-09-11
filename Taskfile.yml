@@ -1,0 +1,9 @@
+version: '3'
+
+tasks:
+  build:
+    cmds:
+      - CGO_ENABLED=0 go build -o bin/sam ./cmd/sam
+  assets:
+    cmds:
+      - minify -o public/style.css src/css
