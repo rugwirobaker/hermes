@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/joho/godotenv"
@@ -13,9 +17,6 @@ import (
 )
 
 func main() {
-	//port
-	//sms-app-id
-	//sms-app-secrert
 	var envfile string
 	flag.StringVar(&envfile, "env-file", ".env", "Read in a file of environment variables")
 	flag.Parse()
@@ -31,12 +32,33 @@ func main() {
 
 	service := sam.New()
 	api := api.New(service)
-
 	mux := chi.NewMux()
-
 	mux.Mount("/api", api.Handler())
 
-	log.Printf("starting sam server at %s", port)
+	srv := &http.Server{
+		Addr:    ":" + port,
+		Handler: mux,
+	}
 
-	http.ListenAndServe(":"+port, mux)
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
+	log.Printf("Started Sam Server at port %s", port)
+	<-done
+	log.Print("Server Stopped")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer func() {
+		// extra handling here
+		cancel()
+	}()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("Server Shutdown Failed:%+v", err)
+	}
+	log.Print("Server Exited Properly")
 }
