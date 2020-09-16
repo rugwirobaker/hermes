@@ -1,25 +1,38 @@
 package api
 
 import (
-	"fmt"
+	"encoding/json"
+	"log"
 	"net/http"
 
-	"github.com/rugwirobaker/sam"
+	helmes "github.com/rugwirobaker/helmes"
 )
 
 // SMSHandler ...
-func SMSHandler(svc sam.Service) http.HandlerFunc {
+func SMSHandler(svc helmes.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, cost, err := svc.Send(r.Context(), sam.SMS{})
-		if err != nil {
+
+		in := new(helmes.SMS)
+
+		if err := json.NewDecoder(r.Body).Decode(in); err != nil {
+			log.Printf("failed to send sms %v", err)
 			http.Error(w, err.Error(), 500)
+			return
 		}
-		w.Write([]byte(fmt.Sprintf("%s:%d", id, cost)))
+		out, err := svc.Send(r.Context(), in)
+		if err != nil {
+			log.Printf("failed to send sms %v", err)
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		log.Printf("sent sms to '%s'", in.Recipient)
+		JSON(w, out, 200)
 	}
 }
 
 // VersionHandler ...
-func VersionHandler(svc sam.Service) http.HandlerFunc {
+func VersionHandler(svc helmes.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ver, err := svc.Version(r.Context())
 		if err != nil {
@@ -27,4 +40,12 @@ func VersionHandler(svc sam.Service) http.HandlerFunc {
 		}
 		w.Write([]byte(ver))
 	}
+}
+
+// JSON responds with json
+func JSON(w http.ResponseWriter, v interface{}, status int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	enc := json.NewEncoder(w)
+	enc.Encode(v)
 }
