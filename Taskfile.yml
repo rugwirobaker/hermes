@@ -1,8 +1,11 @@
 version: '3'
 
+dotenv: ['.env']
+
 tasks:
   build:
     cmds:
+      - echo "compiling binary..."
       - CGO_ENABLED=0 go build -o bin/helmes ./cmd/helmes
   
   run:
@@ -12,4 +15,7 @@ tasks:
   
   image:
     cmds:
-      - echo "building docker image..."
+      - docker build --network host -t helmes:{{.GIT_COMMIT}} .
+    vars:
+      GIT_COMMIT:
+        sh: git rev-parse --short HEAD
