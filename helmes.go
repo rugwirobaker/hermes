@@ -25,7 +25,7 @@ type Service interface {
 	Send(context.Context, *SMS) (*Report, error)
 
 	//Version returns helmes's current running version
-	Version(context.Context) (string, error)
+	Version(context.Context) (*Build, error)
 }
 
 type service struct {
@@ -74,8 +74,8 @@ func (s *service) Send(ctx context.Context, message *SMS) (*Report, error) {
 	return convertReport(report), nil
 }
 
-func (s *service) Version(ctx context.Context) (string, error) {
-	return "v0.1.0", nil
+func (s *service) Version(ctx context.Context) (*Build, error) {
+	return Data(), nil
 }
 
 func convertReport(report *sms.Report) *Report {

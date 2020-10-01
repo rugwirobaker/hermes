@@ -6,7 +6,13 @@ tasks:
   build:
     cmds:
       - echo "compiling binary..."
-      - CGO_ENABLED=0 go build -o bin/helmes ./cmd/helmes
+      - CGO_ENABLED=0 go build -ldflags="{{.LDFLAGS}}" -o bin/helmes ./cmd/helmes
+    vars:
+      VERSION:
+        sh: git rev-parse --short HEAD
+      DATE:
+        sh: date -u +%Y-%m-%d-%H:%M:%S-%Z
+      LDFLAGS: "-X github.com/rugwirobaker/helmes.version={{.VERSION}} -X github.com/rugwirobaker/helmes.buildDate={{.DATE}}"
   
   run:
     deps: [build]
