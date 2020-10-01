@@ -1,0 +1,11 @@
+apiVersion: skaffold/v2beta7
+kind: Config
+metadata:
+  name: helmes
+build:
+  artifacts:
+  - image: ghcr.io/rugwirobaker/helmes
+deploy:
+  kubectl:
+    manifests:
+    - service.yml
