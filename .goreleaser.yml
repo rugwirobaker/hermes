@@ -13,6 +13,10 @@ builds:
       - windows
       - darwin
     binary: helmes
+    ldflags:
+    - -X "github.com/rugwirobaker/helmes.version={{ .Version }}"
+    - -X "github.com/rugwirobaker/helmes.buildDate={{ .Env.DATE }}"
+
 archives:
   - replacements:
       darwin: Darwin

@@ -34,11 +34,11 @@ func SMSHandler(svc helmes.Service) http.HandlerFunc {
 // VersionHandler ...
 func VersionHandler(svc helmes.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ver, err := svc.Version(r.Context())
+		build, err := svc.Version(r.Context())
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 		}
-		w.Write([]byte(ver))
+		JSON(w, build, http.StatusOK)
 	}
 }
 
