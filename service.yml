@@ -1,0 +1,14 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: helmes
+spec:
+  template:
+    spec:
+      containerConcurrency: 50
+      containers:
+      - image: ghcr.io/rugwirobaker/helmes
+        resources:
+          limits:
+            cpu: "2"
+            memory: 512Mi
