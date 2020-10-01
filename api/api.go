@@ -33,6 +33,7 @@ func (s Server) Handler() http.Handler {
 
 	r.Get("/version", VersionHandler(s.Service))
 	r.Post("/send", SMSHandler(s.Service))
+	r.Get("/healthz", HealthHandler())
 
 	return r
 }
