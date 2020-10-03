@@ -2,8 +2,19 @@ version: '3'
 
 dotenv: ['.env']
 
+output: prefixed
+
+silent: true
+
 tasks:
+  default:
+    desc: Default task
+    cmds:
+      - task: run
+
   build:
+    desc: Build the application
+    deps: [generate]
     cmds:
       - echo "compiling binary..."
       - CGO_ENABLED=0 go build -ldflags="{{.LDFLAGS}}" -o bin/helmes ./cmd/helmes
@@ -14,14 +25,28 @@ tasks:
         sh: date -u +%Y-%m-%d-%H:%M:%S-%Z
       LDFLAGS: "-X github.com/rugwirobaker/helmes.version={{.VERSION}} -X github.com/rugwirobaker/helmes.buildDate={{.DATE}}"
   
-  run:
-    deps: [build]
+  generate:
+    desc: Generate code
     cmds:
-      - ./bin/helmes
-  
+      - go generate ./...
+   
   image:
+    desc: Build the application container images
     cmds:
       - docker build --network host -t helmes:{{.GIT_COMMIT}} .
     vars:
       GIT_COMMIT:
         sh: git rev-parse --short HEAD
+
+  run:
+    desc: Start the application
+    deps: [build]
+    cmds:
+      - ./bin/helmes
+  
+  test:
+    desc: Run unit tests
+    deps: [generate]
+    cmds:
+      - go generate ./...
+      - go test -race -covermode=atomic ./...
