@@ -1,5 +1,5 @@
 ---
-name: publish artifacts
+name: release
 on:
   push:
     tags:
