@@ -19,13 +19,10 @@ type Report struct {
 	Cost int64  `json:"cost"`
 }
 
-// Service defines the capabilties of helmes
-type Service interface {
+// SendService defines the capabilties of helmes
+type SendService interface {
 	// Send an sms message and return it's
 	Send(context.Context, *SMS) (*Report, error)
-
-	//Version returns helmes's current running version
-	Version(context.Context) (*Build, error)
 }
 
 type service struct {
@@ -36,7 +33,7 @@ type service struct {
 }
 
 // New instance of service
-func New(cli *sms.Client, id, secret, sender, callback string) (Service, error) {
+func New(cli *sms.Client, id, secret, sender, callback string) (SendService, error) {
 	token, _, err := cli.Auth.Login(context.Background(), id, secret)
 	if err != nil {
 		return nil, err
@@ -54,6 +51,7 @@ func (s *service) Send(ctx context.Context, message *SMS) (*Report, error) {
 	if err != nil {
 		return nil, err
 	}
+	s.token = token
 	ctx = context.WithValue(ctx, sms.TokenKey{}, &sms.Token{
 		Token:   token.Token,
 		Refresh: token.Refresh,
@@ -72,10 +70,6 @@ func (s *service) Send(ctx context.Context, message *SMS) (*Report, error) {
 		return nil, err
 	}
 	return convertReport(report), nil
-}
-
-func (s *service) Version(ctx context.Context) (*Build, error) {
-	return Data(), nil
 }
 
 func convertReport(report *sms.Report) *Report {
