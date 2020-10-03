@@ -1,4 +1,4 @@
-package api
+package handlers
 
 import (
 	"encoding/json"
@@ -12,8 +12,8 @@ import (
 
 var startTime = time.Now()
 
-// SMSHandler ...
-func SMSHandler(svc helmes.Service) http.HandlerFunc {
+// SendHandler ...
+func SendHandler(svc helmes.SendService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		in := new(helmes.SMS)
@@ -35,25 +35,18 @@ func SMSHandler(svc helmes.Service) http.HandlerFunc {
 	}
 }
 
-// VersionHandler ...
-func VersionHandler(svc helmes.Service) http.HandlerFunc {
+// VersionHandler handles version reporting
+func VersionHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		build, err := svc.Version(r.Context())
-		if err != nil {
-			http.Error(w, err.Error(), 500)
-		}
-		JSON(w, build, http.StatusOK)
+		res := helmes.Data()
+		JSON(w, res, http.StatusOK)
 	}
 }
 
-// HealthHandler reports the health of the application
+// HealthHandler handles application health reporting
 func HealthHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		res := struct {
-			GitRev     string  `json:"git_rev"`
-			Uptime     float64 `json:"uptime"`
-			Goroutines int     `json:"goroutines"`
-		}{
+		res := &helmes.Health{
 			GitRev:     helmes.Data().Version,
 			Uptime:     time.Since(startTime).Seconds(),
 			Goroutines: runtime.NumGoroutine(),

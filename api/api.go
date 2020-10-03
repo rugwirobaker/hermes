@@ -6,15 +6,16 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	helmes "github.com/rugwirobaker/helmes"
+	"github.com/rugwirobaker/helmes/api/handlers"
 )
 
 // Server ...
 type Server struct {
-	Service helmes.Service
+	Service helmes.SendService
 }
 
 // New api Server instance
-func New(svc helmes.Service) *Server {
+func New(svc helmes.SendService) *Server {
 	return &Server{Service: svc}
 }
 
@@ -31,9 +32,9 @@ func (s Server) Handler() http.Handler {
 		w.Write([]byte("Welcome to helmes"))
 	})
 
-	r.Get("/version", VersionHandler(s.Service))
-	r.Post("/send", SMSHandler(s.Service))
-	r.Get("/healthz", HealthHandler())
+	r.Get("/healthz", handlers.HealthHandler())
+	r.Get("/version", handlers.VersionHandler())
+	r.Post("/send", handlers.SendHandler(s.Service))
 
 	return r
 }
