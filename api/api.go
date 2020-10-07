@@ -11,12 +11,13 @@ import (
 
 // Server ...
 type Server struct {
+	Events  helmes.Pubsub
 	Service helmes.SendService
 }
 
 // New api Server instance
-func New(svc helmes.SendService) *Server {
-	return &Server{Service: svc}
+func New(svc helmes.SendService, events helmes.Pubsub) *Server {
+	return &Server{Service: svc, Events: events}
 }
 
 // Handler returns an http.Handler
@@ -32,9 +33,11 @@ func (s Server) Handler() http.Handler {
 		w.Write([]byte("Welcome to helmes"))
 	})
 
-	r.Get("/healthz", handlers.HealthHandler())
 	r.Get("/version", handlers.VersionHandler())
+	r.Get("/healthz", handlers.HealthHandler())
 	r.Post("/send", handlers.SendHandler(s.Service))
+	r.Get("/events/{id}/status", handlers.SubscribeHandler(s.Events))
+	r.Post("/delivery", handlers.DeliveryHandler(s.Events))
 
 	return r
 }

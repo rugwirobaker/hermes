@@ -35,7 +35,7 @@ func TestSend(t *testing.T) {
 	client.Message = mockSendService
 	client.Auth = mockAuthService
 
-	service, _ := helmes.New(client, "id", "secret", "sender", "callback")
+	service, _ := helmes.NewSendService(client, "id", "secret", "sender", "callback")
 
 	want := &helmes.Report{
 		ID:   "fake_id",

@@ -14,7 +14,6 @@ tasks:
 
   build:
     desc: Build the application
-    deps: [generate]
     cmds:
       - echo "compiling binary..."
       - CGO_ENABLED=0 go build -ldflags="{{.LDFLAGS}}" -o bin/helmes ./cmd/helmes
@@ -46,7 +45,5 @@ tasks:
   
   test:
     desc: Run unit tests
-    deps: [generate]
     cmds:
-      - go generate ./...
       - go test -race -covermode=atomic ./...

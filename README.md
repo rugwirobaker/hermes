@@ -3,6 +3,16 @@
 Helmes is a demo 12 factor app in Go that can be deployed on any cloud native compliant platform as a container.
 Helmes as the name obviously implies is a messenger that Sends SMS messages to any supported carrier in Rwanda.
 
+## Goals
+
+- [x] Simple sms delivery.
+- [x] Delivery notifications.
+- [ ] Implement a simple store(badger) to record access records.
+- [ ] Document authentication via [pomerium.io](https://www.pomerium.io/).
+- [ ] Add application metrics.
+- [ ] Build and deploy container imag.
+- [ ] Add valid knative deployment manifests
+
 ## Environment variables
 To function Helmes requires a couple of environment variables:
 
@@ -67,6 +77,13 @@ Finally send the payload as defined in `helmes.json`
 
 ```
 curl -d "@helmes.json" -H "Content-Type: application/json" -X POST localhost:$PORT/api/send
+```
+
+There is an notifications endpoint `api/events/$ID/status` you could subscribe to to recieve
+sms delivery notications. Therss is a helping script you could use to run an example:
+
+```
+./scripts/send.sh
 ```
 
 6. You can build a docker image
