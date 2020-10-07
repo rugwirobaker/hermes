@@ -19,7 +19,7 @@ type Report struct {
 	Cost int64  `json:"cost"`
 }
 
-// SendService defines the capabilties of helmes
+// SendService is a front to the sending service
 type SendService interface {
 	// Send an sms message and return it's
 	Send(context.Context, *SMS) (*Report, error)
@@ -32,8 +32,8 @@ type service struct {
 	token    *sms.Token
 }
 
-// New instance of service
-func New(cli *sms.Client, id, secret, sender, callback string) (SendService, error) {
+// NewSendService instance of service
+func NewSendService(cli *sms.Client, id, secret, sender, callback string) (SendService, error) {
 	token, _, err := cli.Auth.Login(context.Background(), id, secret)
 	if err != nil {
 		return nil, err
