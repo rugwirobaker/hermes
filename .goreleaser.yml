@@ -4,7 +4,7 @@ before:
   hooks:
     # You may remove this if you don't use go modules.
     - go mod download
-    - GO111MODULE=on go get github.com/golang/mock/mockgen@v1.4.4
+    - go get github.com/golang/mock/mockgen@v1.4.4
     - go generate ./...
 builds:
   - env:
