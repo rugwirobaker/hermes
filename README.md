@@ -16,7 +16,7 @@ Helmes as the name obviously implies is a messenger that Sends SMS messages to a
 ## Environment variables
 To function Helmes requires a couple of environment variables:
 
-```
+```bash
 cat .template.env
 PORT=8080
 HELMES_SMS_APP_ID="fdi sms app id"
@@ -33,7 +33,7 @@ To start Helmes on your laptop:
 1. git clone this repository
 
 2. source the environment variables
- ```
+```bash
 cp .template.env .env
 # edit the file .env with variables and credentials the source the file
 source .env
@@ -41,7 +41,7 @@ source .env
 ```
 
 3. build the helmes binary
-```
+```bash
 CGO_ENABLED=0 go build -o bin/helmes ./cmd/helmes
 # view the output binary
 ls bin
@@ -55,14 +55,14 @@ task run
 
 4. check helmes version via `/api/version`
 
-```
+```bash
 # source .env
 
 curl localhost:$PORT/api/version
 ```
 5. send an sms messsage via `/api/send`
 
-````
+````bash
 # source .env
 
 # replace with your 078xxxxxxx with your number
@@ -75,18 +75,18 @@ cat helmes.json | jq --arg MESSAGE $MESSAGE '.payload=$MESSAGE' | tee helmes.jso
 
 Finally send the payload as defined in `helmes.json`
 
-```
+```bash
 curl -d "@helmes.json" -H "Content-Type: application/json" -X POST localhost:$PORT/api/send
 ```
 
 There is an notifications endpoint `api/events/$ID/status` you could subscribe to to recieve
 sms delivery notications. Therss is a helping script you could use to run an example:
 
-```
+```bash
 ./scripts/send.sh
 ```
 
 6. You can build a docker image
-```
+```bash
 task image
 ```
