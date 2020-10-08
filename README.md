@@ -47,7 +47,7 @@ CGO_ENABLED=0 go build -o bin/helmes ./cmd/helmes
 ls bin
 ```
 
-For convience your could install [task](https://taskfile.dev/) a make alternative then:
+For convinience, you could install [task](https://taskfile.dev/) a make alternative then:
 ```
 # it will build your binary and start the helmes server
 task run 
@@ -79,8 +79,8 @@ Finally send the payload as defined in `helmes.json`
 curl -d "@helmes.json" -H "Content-Type: application/json" -X POST localhost:$PORT/api/send
 ```
 
-There is an notifications endpoint `api/events/$ID/status` you could subscribe to to recieve
-sms delivery notications. Therss is a helping script you could use to run an example:
+There is a notification endpoint `api/events/$ID/status` you could subscribe to receive
+sms delivery notications. There is a helping script you could use to run an example:
 
 ```bash
 ./scripts/send.sh
