@@ -7,7 +7,7 @@ Helmes as the name obviously implies is a messenger that Sends SMS messages to a
 
 - [x] Simple sms delivery.
 - [x] Delivery notifications.
-- [ ] Implement a simple store(badger) to record access records.
+- [ ] Implement a simple store(sqlite+litestream) to record access records.
 - [ ] Document authentication via [pomerium.io](https://www.pomerium.io/).
 - [ ] Add application metrics.
 - [ ] Build and deploy container imag.
