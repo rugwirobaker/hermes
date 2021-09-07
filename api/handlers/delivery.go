@@ -5,11 +5,11 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/rugwirobaker/helmes"
+	"github.com/rugwirobaker/hermes"
 )
 
 // DeliveryHandler handles delivery callback reception
-func DeliveryHandler(events helmes.Pubsub) http.HandlerFunc {
+func DeliveryHandler(events hermes.Pubsub) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		in := new(event)

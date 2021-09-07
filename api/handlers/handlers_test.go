@@ -12,23 +12,23 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
-	"github.com/rugwirobaker/helmes"
-	"github.com/rugwirobaker/helmes/api/handlers"
-	"github.com/rugwirobaker/helmes/mock"
+	"github.com/rugwirobaker/hermes"
+	"github.com/rugwirobaker/hermes/api/handlers"
+	"github.com/rugwirobaker/hermes/mock"
 )
 
 var (
-	dummyMessage = &helmes.SMS{
+	dummyMessage = &hermes.SMS{
 		Payload:   "Hello",
 		Recipient: "User_Phone",
 	}
-	dummyReport = &helmes.Report{
+	dummyReport = &hermes.Report{
 		ID:   "message id",
 		Cost: 1,
 	}
-	dummyEvent = &helmes.Event{
+	dummyEvent = &hermes.Event{
 		ID:        "fake_id",
-		Status:    helmes.St(1),
+		Status:    hermes.St(1),
 		Recipient: "078xxxxxxx",
 	}
 	dummyCallback = &callback{
@@ -58,7 +58,7 @@ func TestSendHander(t *testing.T) {
 		t.Errorf("Want response code %d, got %d", want, got)
 	}
 
-	got, want := &helmes.Report{}, dummyReport
+	got, want := &hermes.Report{}, dummyReport
 	json.NewDecoder(w.Body).Decode(got)
 	if diff := cmp.Diff(got, want); len(diff) != 0 {
 		t.Errorf(diff)
@@ -87,7 +87,7 @@ func TestVersionHandler(t *testing.T) {
 		t.Errorf("Want response code %d, got %d", want, got)
 	}
 
-	got, want := &helmes.Build{}, helmes.Data()
+	got, want := &hermes.Build{}, hermes.Data()
 	json.NewDecoder(w.Body).Decode(got)
 	if diff := cmp.Diff(got, want); len(diff) != 0 {
 		t.Errorf(diff)
@@ -98,7 +98,7 @@ func TestSubscribeHandler(t *testing.T) {
 	controller := gomock.NewController(t)
 	defer controller.Finish()
 
-	mockEvent := make(chan helmes.Event)
+	mockEvent := make(chan hermes.Event)
 
 	wg := sync.WaitGroup{}
 
@@ -127,7 +127,7 @@ func TestSubscribeHandler(t *testing.T) {
 		t.Errorf("Want response code %d, got %d", want, got)
 	}
 
-	got, want := &helmes.Event{}, dummyEvent
+	got, want := &hermes.Event{}, dummyEvent
 	json.NewDecoder(w.Body).Decode(got)
 	if diff := cmp.Diff(got, want); len(diff) != 0 {
 		t.Errorf(diff)

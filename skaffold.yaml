@@ -1,10 +1,10 @@
 apiVersion: skaffold/v2beta7
 kind: Config
 metadata:
-  name: helmes
+  name: hermes
 build:
   artifacts:
-  - image: ghcr.io/rugwirobaker/helmes
+  - image: ghcr.io/rugwirobaker/hermes
 deploy:
   kubectl:
     manifests:

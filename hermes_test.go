@@ -1,4 +1,4 @@
-package helmes_test
+package hermes_test
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 	"github.com/quarksgroup/sms-client/sms"
-	"github.com/rugwirobaker/helmes"
-	"github.com/rugwirobaker/helmes/mock/mocksmc"
+	"github.com/rugwirobaker/hermes"
+	"github.com/rugwirobaker/hermes/mock/mocksmc"
 )
 
 var noContext = context.Background()
@@ -22,7 +22,7 @@ func TestSend(t *testing.T) {
 		Cost: 1,
 	}
 	mockToken := &sms.Token{}
-	mockSMS := &helmes.SMS{}
+	mockSMS := &hermes.SMS{}
 
 	mockSendService := mocksmc.NewMockSendService(controller)
 	mockSendService.EXPECT().Send(gomock.Any(), gomock.Any()).Return(mockReport, nil, nil)
@@ -35,9 +35,9 @@ func TestSend(t *testing.T) {
 	client.Message = mockSendService
 	client.Auth = mockAuthService
 
-	service, _ := helmes.NewSendService(client, "id", "secret", "sender", "callback")
+	service, _ := hermes.NewSendService(client, "id", "secret", "sender", "callback")
 
-	want := &helmes.Report{
+	want := &hermes.Report{
 		ID:   "fake_id",
 		Cost: 1,
 	}

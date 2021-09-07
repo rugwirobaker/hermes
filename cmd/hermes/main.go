@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/rugwirobaker/helmes"
-	"github.com/rugwirobaker/helmes/api"
+	"github.com/rugwirobaker/hermes"
+	"github.com/rugwirobaker/hermes/api"
 )
 
 func main() {
@@ -23,15 +23,15 @@ func main() {
 
 	cli := provideClient()
 
-	service, err := helmes.NewSendService(cli, id, secret, sender, callback)
+	service, err := hermes.NewSendService(cli, id, secret, sender, callback)
 	if err != nil {
 		log.Fatalf("could not initialize sms service: %v", err)
 	}
 
-	events := helmes.NewPubsub()
+	events := hermes.NewPubsub()
 	defer events.Close()
 
-	log.Println("initialized helmes api")
+	log.Println("initialized hermes api")
 	api := api.New(service, events)
 	mux := chi.NewMux()
 	mux.Mount("/api", api.Handler())

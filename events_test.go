@@ -1,4 +1,4 @@
-package helmes_test
+package hermes_test
 
 import "testing"
 

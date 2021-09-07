@@ -6,16 +6,16 @@ import (
 	"net/http"
 	"time"
 
-	helmes "github.com/rugwirobaker/helmes"
+	hermes "github.com/rugwirobaker/hermes"
 )
 
 var startTime = time.Now()
 
 // SendHandler ...
-func SendHandler(svc helmes.SendService) http.HandlerFunc {
+func SendHandler(svc hermes.SendService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		in := new(helmes.SMS)
+		in := new(hermes.SMS)
 
 		if err := json.NewDecoder(r.Body).Decode(in); err != nil {
 			log.Printf("failed to send sms %v", err)
