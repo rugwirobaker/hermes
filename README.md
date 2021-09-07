@@ -1,7 +1,7 @@
-# Helmes
+# Hermes
 
-Helmes is a demo 12 factor app in Go that can be deployed on any cloud native compliant platform as a container.
-Helmes as the name obviously implies is a messenger that Sends SMS messages to any supported carrier in Rwanda.
+Hermes is a demo 12 factor app in Go that can be deployed on any cloud native compliant platform as a container.
+Hermes as the name obviously implies is a messenger that Sends SMS messages to any supported carrier in Rwanda.
 
 ## Goals
 
@@ -14,7 +14,7 @@ Helmes as the name obviously implies is a messenger that Sends SMS messages to a
 - [ ] Add valid knative deployment manifests
 
 ## Environment variables
-To function Helmes requires a couple of environment variables:
+To function Hermes requires a couple of environment variables:
 
 ```bash
 cat .template.env
@@ -27,8 +27,8 @@ HELMES_CALLBACK_URL="delivery(dlr) report callback url" # optional
 
 Besides the port the other variables can be obtained by subscribing to https://www.fdibiz.com/ messaging API.
 
-## Try helmes
-To start Helmes on your laptop:
+## Try hermes
+To start Hermes on your laptop:
 
 1. git clone this repository
 
@@ -40,20 +40,20 @@ source .env
 
 ```
 
-3. build the helmes binary
+3. build the hermes binary
 ```bash
-CGO_ENABLED=0 go build -o bin/helmes ./cmd/helmes
+CGO_ENABLED=0 go build -o bin/hermes ./cmd/hermes
 # view the output binary
 ls bin
 ```
 
 For convinience, you could install [task](https://taskfile.dev/) a make alternative then:
 ```
-# it will build your binary and start the helmes server
+# it will build your binary and start the hermes server
 task run 
 ```
 
-4. check helmes version via `/api/version`
+4. check hermes version via `/api/version`
 
 ```bash
 # source .env
@@ -69,14 +69,14 @@ curl localhost:$PORT/api/version
 export PHONE="your phone"
 export MESSAGE="your message"
 
-cat example.json | jq --arg PHONE $PHONE '.recipient=$PHONE' | tee helmes.json
-cat helmes.json | jq --arg MESSAGE $MESSAGE '.payload=$MESSAGE' | tee helmes.json
+cat example.json | jq --arg PHONE $PHONE '.recipient=$PHONE' | tee hermes.json
+cat hermes.json | jq --arg MESSAGE $MESSAGE '.payload=$MESSAGE' | tee hermes.json
  ````
 
-Finally send the payload as defined in `helmes.json`
+Finally send the payload as defined in `hermes.json`
 
 ```bash
-curl -d "@helmes.json" -H "Content-Type: application/json" -X POST localhost:$PORT/api/send
+curl -d "@hermes.json" -H "Content-Type: application/json" -X POST localhost:$PORT/api/send
 ```
 
 There is a notification endpoint `api/events/$ID/status` you could subscribe to receive

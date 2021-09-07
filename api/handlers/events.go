@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/rugwirobaker/helmes"
+	"github.com/rugwirobaker/hermes"
 )
 
 // SubscribeHandler handles user subscriptions to delivery notifications
-func SubscribeHandler(events helmes.Pubsub) http.HandlerFunc {
+func SubscribeHandler(events hermes.Pubsub) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 
@@ -65,10 +65,10 @@ type event struct {
 	Status     int    `json:"status"`
 }
 
-func convertEvent(event *event) helmes.Event {
-	return helmes.Event{
+func convertEvent(event *event) hermes.Event {
+	return hermes.Event{
 		ID:        event.MsgRef,
 		Recipient: event.Recipient,
-		Status:    helmes.St(event.Status),
+		Status:    hermes.St(event.Status),
 	}
 }

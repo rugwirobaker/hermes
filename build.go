@@ -1,4 +1,4 @@
-package helmes
+package hermes
 
 import "fmt"
 

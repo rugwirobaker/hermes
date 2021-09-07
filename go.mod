@@ -1,4 +1,4 @@
-module github.com/rugwirobaker/helmes
+module github.com/rugwirobaker/hermes
 
 go 1.14
 

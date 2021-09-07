@@ -9,15 +9,15 @@ before:
 builds:
   - env:
       - CGO_ENABLED=0
-    main: ./cmd/helmes
+    main: ./cmd/hermes
     goos:
       - linux
       - windows
       - darwin
-    binary: helmes
+    binary: hermes
     ldflags:
-    - -X "github.com/rugwirobaker/helmes.version={{ .Version }}"
-    - -X "github.com/rugwirobaker/helmes.buildDate={{ .Env.DATE }}"
+    - -X "github.com/rugwirobaker/hermes.version={{ .Version }}"
+    - -X "github.com/rugwirobaker/hermes.buildDate={{ .Env.DATE }}"
 
 archives:
   - replacements:

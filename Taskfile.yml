@@ -16,13 +16,13 @@ tasks:
     desc: Build the application
     cmds:
       - echo "compiling binary..."
-      - CGO_ENABLED=0 go build -ldflags="{{.LDFLAGS}}" -o bin/helmes ./cmd/helmes
+      - CGO_ENABLED=0 go build -ldflags="{{.LDFLAGS}}" -o bin/hermes ./cmd/hermes
     vars:
       VERSION:
         sh: git rev-parse --short HEAD
       DATE:
         sh: date -u +%Y-%m-%d-%H:%M:%S-%Z
-      LDFLAGS: "-X github.com/rugwirobaker/helmes.version={{.VERSION}} -X github.com/rugwirobaker/helmes.buildDate={{.DATE}}"
+      LDFLAGS: "-X github.com/rugwirobaker/hermes.version={{.VERSION}} -X github.com/rugwirobaker/hermes.buildDate={{.DATE}}"
   
   generate:
     desc: Generate code
@@ -32,7 +32,7 @@ tasks:
   image:
     desc: Build the application container images
     cmds:
-      - docker build --network host -t helmes:{{.GIT_COMMIT}} .
+      - docker build --network host -t hermes:{{.GIT_COMMIT}} .
     vars:
       GIT_COMMIT:
         sh: git rev-parse --short HEAD
@@ -41,7 +41,7 @@ tasks:
     desc: Start the application
     deps: [build]
     cmds:
-      - ./bin/helmes
+      - ./bin/hermes
   
   test:
     desc: Run unit tests

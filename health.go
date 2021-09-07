@@ -1,4 +1,4 @@
-package helmes
+package hermes
 
 // Health report
 type Health struct {
