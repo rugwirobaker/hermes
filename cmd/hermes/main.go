@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/rugwirobaker/hermes"
 	"github.com/rugwirobaker/hermes/api"
+	"github.com/rugwirobaker/hermes/api/middleware"
 )
 
 func main() {
@@ -31,8 +32,10 @@ func main() {
 	events := hermes.NewPubsub()
 	defer events.Close()
 
+	cache := middleware.NewMemoryCache()
+
 	log.Println("initialized hermes api")
-	api := api.New(service, events)
+	api := api.New(service, events, cache)
 	mux := chi.NewMux()
 	mux.Mount("/api", api.Handler())
 

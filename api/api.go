@@ -7,17 +7,19 @@ import (
 	"github.com/go-chi/chi/middleware"
 	hermes "github.com/rugwirobaker/hermes"
 	"github.com/rugwirobaker/hermes/api/handlers"
+	mw "github.com/rugwirobaker/hermes/api/middleware"
 )
 
 // Server ...
 type Server struct {
 	Events  hermes.Pubsub
 	Service hermes.SendService
+	Cache   mw.Cache
 }
 
 // New api Server instance
-func New(svc hermes.SendService, events hermes.Pubsub) *Server {
-	return &Server{Service: svc, Events: events}
+func New(svc hermes.SendService, events hermes.Pubsub, cache mw.Cache) *Server {
+	return &Server{Service: svc, Events: events, Cache: cache}
 }
 
 // Handler returns an http.Handler
@@ -28,6 +30,8 @@ func (s Server) Handler() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(mw.Idempotency)
+	r.Use(mw.Caching(s.Cache))
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Welcome to hermes"))
