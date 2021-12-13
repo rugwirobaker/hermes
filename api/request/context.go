@@ -7,12 +7,9 @@ import (
 type key int
 
 const (
-	userKey key = iota
-	requestKey
-	permKey
+	requestKey key = iota
 	addressKey
 	idempKey
-	phoneKey
 )
 
 // WithRequestID sets the given requestID into the context
