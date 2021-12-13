@@ -24,10 +24,6 @@ const (
 func Caching(cache Cache) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			// if !isCachable(r) {
-			// 	next.ServeHTTP(w, r)
-			// 	return
-			// }
 
 			key, ok := request.IdempotencyFrom(r.Context())
 			if !ok {
@@ -35,7 +31,7 @@ func Caching(cache Cache) func(http.Handler) http.Handler {
 				return
 			}
 
-			if entry, ok := cache.Get(key); ok {
+			if entry, ok := cache.Get(key); ok && entry.Path == r.URL.Path {
 				log.Printf("[Caching] Cache hit for key: %s", key)
 
 				w.WriteHeader(entry.Code)
@@ -51,7 +47,7 @@ func Caching(cache Cache) func(http.Handler) http.Handler {
 
 			rec := httptest.NewRecorder()
 			next.ServeHTTP(rec, r)
-			entry := NewEntry(rec.Code, rec.Header(), rec.Body.Bytes())
+			entry := NewEntry(rec.Code, rec.Header(), r.URL.Path, rec.Body.Bytes())
 			cache.Set(key, entry)
 			for k, v := range rec.Header() {
 				w.Header()[k] = v
@@ -73,13 +69,15 @@ type Entry struct {
 	Code    int
 	Headers http.Header
 	Body    []byte
+	Path    string
 }
 
-func NewEntry(code int, headers http.Header, body []byte) *Entry {
+func NewEntry(code int, headers http.Header, path string, body []byte) *Entry {
 	return &Entry{
 		Code:    code,
 		Headers: headers,
 		Body:    body,
+		Path:    path,
 	}
 }
 
