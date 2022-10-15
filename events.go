@@ -90,7 +90,6 @@ func (ps *pubsub) Subscribe(ctx context.Context, topic string) (<-chan Event, er
 		ps.mu.Lock()
 		delete(ps.sink, topic)
 		ps.mu.Unlock()
-
 	}()
 	return event, nil
 }

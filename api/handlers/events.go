@@ -6,13 +6,20 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/rugwirobaker/hermes"
+	"github.com/rugwirobaker/hermes/observ"
 )
 
 // SubscribeHandler handles user subscriptions to delivery notifications
 func SubscribeHandler(events hermes.Pubsub) http.HandlerFunc {
+	const op = "handlers.SubscribeHandler"
+
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		ctx, span := observ.StartSpan(r.Context(), op)
+		defer span.End()
+
 		id := chi.URLParam(r, "id")
 
 		h := w.Header()
@@ -27,7 +34,7 @@ func SubscribeHandler(events hermes.Pubsub) http.HandlerFunc {
 			return
 		}
 
-		ctx, cancel := context.WithCancel(r.Context())
+		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 
 		event, err := events.Subscribe(ctx, id)
@@ -58,17 +65,17 @@ func SubscribeHandler(events hermes.Pubsub) http.HandlerFunc {
 	}
 }
 
-type event struct {
-	MsgRef     string `json:"msgRef"`
-	Recipient  string `json:"recipient"`
-	GatewayRef string `json:"gatewayRef"`
-	Status     int    `json:"status"`
-}
+// type event struct {
+// 	MsgRef     string `json:"msgRef"`
+// 	Recipient  string `json:"recipient"`
+// 	GatewayRef string `json:"gatewayRef"`
+// 	Status     int    `json:"status"`
+// }
 
-func convertEvent(event *event) hermes.Event {
-	return hermes.Event{
-		ID:        event.MsgRef,
-		Recipient: event.Recipient,
-		Status:    hermes.St(event.Status),
-	}
-}
+// func convertEvent(event *event) hermes.Event {
+// 	return hermes.Event{
+// 		ID:        event.MsgRef,
+// 		Recipient: event.Recipient,
+// 		Status:    hermes.St(event.Status),
+// 	}
+// }

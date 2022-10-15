@@ -8,10 +8,12 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/rugwirobaker/hermes"
 	"github.com/rugwirobaker/hermes/api"
 	"github.com/rugwirobaker/hermes/api/middleware"
+	"github.com/rugwirobaker/hermes/sqlite"
+	"github.com/uptrace/uptrace-go/uptrace"
 )
 
 func main() {
@@ -21,8 +23,36 @@ func main() {
 	secret := os.Getenv("HELMES_SMS_APP_SECRET")
 	sender := os.Getenv("HELMES_SENDER_IDENTITY")
 	callback := os.Getenv("HELMES_CALLBACK_URL")
+	uptraceDSN := os.Getenv("UPTRACE_DSN")
+	dbURL := os.Getenv("DATABASE_URL")
+
+	if dbURL == "" {
+		dbURL = "hermes.db"
+	}
+
+	ctx := context.Background()
 
 	cli := provideClient()
+
+	info := hermes.Data()
+
+	uptrace.ConfigureOpentelemetry(
+		// copy your project DSN here or use UPTRACE_DSN env var
+		uptrace.WithDSN(uptraceDSN),
+		uptrace.WithServiceName("hermes"),
+		uptrace.WithServiceVersion(info.Version),
+	)
+
+	provider := uptrace.TracerProvider()
+	defer provider.Shutdown(ctx)
+
+	db, err := sqlite.NewDB(dbURL, provider)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	store := hermes.NewStore(db)
 
 	service, err := hermes.NewSendService(cli, id, secret, sender, callback)
 	if err != nil {
@@ -35,7 +65,7 @@ func main() {
 	cache := middleware.NewMemoryCache()
 
 	log.Println("initialized hermes api")
-	api := api.New(service, events, cache)
+	api := api.New(service, events, store, cache, provider)
 	mux := chi.NewMux()
 	mux.Mount("/api", api.Handler())
 
@@ -55,8 +85,9 @@ func main() {
 		<-sigint
 
 		// We received an interrupt signal, shut down.
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+		ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 		defer cancel()
+
 		if err := srv.Shutdown(ctx); err != nil {
 			log.Fatal(err)
 		}
