@@ -86,12 +86,10 @@ func (ps *pubsub) Subscribe(ctx context.Context, topic string) (<-chan Event, er
 	ps.mu.Unlock()
 
 	go func() {
-		select {
-		case <-ctx.Done():
-			ps.mu.Lock()
-			delete(ps.sink, topic)
-			ps.mu.Unlock()
-		}
+		<-ctx.Done()
+		ps.mu.Lock()
+		delete(ps.sink, topic)
+		ps.mu.Unlock()
 	}()
 	return event, nil
 }

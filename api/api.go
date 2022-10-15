@@ -3,21 +3,25 @@ package api
 import (
 	"net/http"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/riandyrn/otelchi"
 	hermes "github.com/rugwirobaker/hermes"
 	"github.com/rugwirobaker/hermes/api/handlers"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // Server ...
 type Server struct {
-	Events  hermes.Pubsub
-	Service hermes.SendService
+	events   hermes.Pubsub
+	service  hermes.SendService
+	store    hermes.Store
+	provider trace.TracerProvider
 }
 
 // New api Server instance
-func New(svc hermes.SendService, events hermes.Pubsub) *Server {
-	return &Server{Service: svc, Events: events}
+func New(svc hermes.SendService, events hermes.Pubsub, users hermes.Store, provider trace.TracerProvider) *Server {
+	return &Server{service: svc, events: events, store: users, provider: provider}
 }
 
 // Handler returns an http.Handler
@@ -27,6 +31,8 @@ func (s Server) Handler() http.Handler {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
+	r.Use(otelchi.Middleware("hermes", otelchi.WithTracerProvider(s.provider)))
+
 	r.Use(middleware.Recoverer)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -35,9 +41,10 @@ func (s Server) Handler() http.Handler {
 
 	r.Get("/version", handlers.VersionHandler())
 	r.Get("/healthz", handlers.HealthHandler())
-	r.Post("/send", handlers.SendHandler(s.Service))
-	r.Get("/events/{id}/status", handlers.SubscribeHandler(s.Events))
-	r.HandleFunc("/delivery", handlers.DeliveryHandler(s.Events))
+	r.Post("/send", handlers.SendHandler(s.service, s.store))
+	r.Get("/message/{id}", handlers.GetMessage(s.store))
+	r.Get("/events/{id}/status", handlers.SubscribeHandler(s.events))
+	r.HandleFunc("/delivery", handlers.DeliveryHandler(s.events))
 
 	return r
 }

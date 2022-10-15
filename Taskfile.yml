@@ -16,7 +16,7 @@ tasks:
     desc: Build the application
     cmds:
       - echo "compiling binary..."
-      - CGO_ENABLED=0 go build -ldflags="{{.LDFLAGS}}" -o bin/hermes ./cmd/hermes
+      - CGO_ENABLED=1 go build -ldflags="{{.LDFLAGS}}" -o bin/hermes ./cmd/hermes
     vars:
       VERSION:
         sh: git rev-parse --short HEAD

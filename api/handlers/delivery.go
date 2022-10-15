@@ -8,11 +8,17 @@ import (
 	"net/http"
 
 	"github.com/rugwirobaker/hermes"
+	"github.com/rugwirobaker/hermes/observ"
 )
 
 // DeliveryHandler handles delivery callback reception
 func DeliveryHandler(events hermes.Pubsub) http.HandlerFunc {
+	const op = "handlers.DeliveryHandler"
+
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		_, span := observ.StartSpan(r.Context(), op)
+		defer span.End()
 
 		if r.Method != http.MethodPost {
 			w.WriteHeader(http.StatusOK)
