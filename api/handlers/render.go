@@ -14,6 +14,10 @@ func JSON(w http.ResponseWriter, v interface{}, status int) {
 	enc.Encode(v)
 }
 
+func HttpError(w http.ResponseWriter, err error, status int) {
+	JSON(w, NewError(err.Error()), status)
+}
+
 // Flush a response down the http.ResponseWriter
 func Flush(w http.ResponseWriter, f http.Flusher, v interface{}) {
 	b, _ := json.Marshal(v)

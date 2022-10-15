@@ -1,6 +1,6 @@
 # fly.toml file generated for helmes on 2021-10-21T15:27:35+02:00
 
-app = "helmes"
+app = "hermes"
 
 kill_signal = "SIGINT"
 kill_timeout = 5

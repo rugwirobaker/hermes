@@ -9,7 +9,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 	"github.com/rugwirobaker/hermes"
@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	dummyMessage = &hermes.SMS{
+	dummyPayload = &hermes.SMS{
 		Payload:   "Hello",
 		Recipient: "User_Phone",
 	}
@@ -37,6 +37,14 @@ var (
 		GatewayRef: "xxxxx",
 		Status:     1,
 	}
+	dummyMessage = &hermes.Message{
+		ID:         1,
+		ProviderID: "fake_id",
+		Recipient:  "078xxxxxxx",
+		Payload:    "Hello",
+		Cost:       1,
+		Status:     hermes.St(1),
+	}
 )
 
 func TestSendHander(t *testing.T) {
@@ -46,14 +54,17 @@ func TestSendHander(t *testing.T) {
 	sender := mock.NewMockSendService(controller)
 	sender.EXPECT().Send(gomock.Any(), gomock.Any()).Return(dummyReport, nil)
 
+	store := mock.NewMockStore(controller)
+	store.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(dummyMessage, nil)
+
 	in := new(bytes.Buffer)
 
-	_ = json.NewEncoder(in).Encode(dummyMessage)
+	_ = json.NewEncoder(in).Encode(dummyPayload)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("POST", "/", in)
 
-	handlers.SendHandler(sender).ServeHTTP(w, r)
+	handlers.SendHandler(sender, store).ServeHTTP(w, r)
 	if got, want := w.Code, http.StatusOK; want != got {
 		t.Errorf("Want response code %d, got %d", want, got)
 	}
