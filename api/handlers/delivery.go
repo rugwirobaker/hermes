@@ -34,15 +34,23 @@ func DeliveryHandler(events hermes.Pubsub) http.HandlerFunc {
 			log.Printf("--> %s %s %s %s\n", r.Method, r.URL.String(), r.Header.Get("User-Agent"), buf.String())
 		}
 
-		var in map[string]interface{}
+		var in hermes.Callback
 
 		if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
 			log.Printf("failed to serialize request")
 			JSON(w, NewError(err.Error()), 500)
 			return
 		}
-		// events.Publish(r.Context(), convertEvent(in))
+		events.Publish(r.Context(), convertEvent(in))
 
 		JSON(w, map[string]string{"status": "ok"}, http.StatusOK)
+	}
+}
+
+func convertEvent(in hermes.Callback) hermes.Event {
+	return hermes.Event{
+		ID:        in.MsgRef,
+		Status:    hermes.St(in.Status),
+		Recipient: in.Recipient,
 	}
 }

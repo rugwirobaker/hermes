@@ -19,6 +19,13 @@ type Report struct {
 	Cost int64  `json:"cost"`
 }
 
+type Callback struct {
+	MsgRef     string `json:"msgRef"`
+	Recipient  string `json:"recipient"`
+	GatewayRef string `json:"gatewayRef"`
+	Status     int    `json:"status"`
+}
+
 // SendService is a front to the sending service
 type SendService interface {
 	// Send an sms message and return it's
