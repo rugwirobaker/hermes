@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"os"
 	"runtime"
 	"time"
 
@@ -15,6 +16,7 @@ func HealthHandler() http.HandlerFunc {
 			GitRev:     hermes.Data().Version,
 			Uptime:     time.Since(startTime).Seconds(),
 			Goroutines: runtime.NumGoroutine(),
+			Region:     os.Getenv("FLY_REGION"),
 		}
 		JSON(w, res, http.StatusOK)
 	}

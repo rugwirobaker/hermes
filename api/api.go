@@ -37,7 +37,7 @@ func (s Server) Handler() http.Handler {
 	r.Get("/healthz", handlers.HealthHandler())
 	r.Post("/send", handlers.SendHandler(s.Service))
 	r.Get("/events/{id}/status", handlers.SubscribeHandler(s.Events))
-	r.Post("/delivery", handlers.DeliveryHandler(s.Events))
+	r.HandleFunc("/delivery", handlers.DeliveryHandler(s.Events))
 
 	return r
 }

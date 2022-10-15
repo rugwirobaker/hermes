@@ -6,35 +6,36 @@ package mocksmc
 
 import (
 	context "context"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	sms "github.com/quarksgroup/sms-client/sms"
-	reflect "reflect"
 )
 
-// MockSendService is a mock of SendService interface
+// MockSendService is a mock of SendService interface.
 type MockSendService struct {
 	ctrl     *gomock.Controller
 	recorder *MockSendServiceMockRecorder
 }
 
-// MockSendServiceMockRecorder is the mock recorder for MockSendService
+// MockSendServiceMockRecorder is the mock recorder for MockSendService.
 type MockSendServiceMockRecorder struct {
 	mock *MockSendService
 }
 
-// NewMockSendService creates a new mock instance
+// NewMockSendService creates a new mock instance.
 func NewMockSendService(ctrl *gomock.Controller) *MockSendService {
 	mock := &MockSendService{ctrl: ctrl}
 	mock.recorder = &MockSendServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockSendService) EXPECT() *MockSendServiceMockRecorder {
 	return m.recorder
 }
 
-// Send mocks base method
+// Send mocks base method.
 func (m *MockSendService) Send(arg0 context.Context, arg1 sms.Message) (*sms.Report, *sms.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Send", arg0, arg1)
@@ -44,36 +45,36 @@ func (m *MockSendService) Send(arg0 context.Context, arg1 sms.Message) (*sms.Rep
 	return ret0, ret1, ret2
 }
 
-// Send indicates an expected call of Send
+// Send indicates an expected call of Send.
 func (mr *MockSendServiceMockRecorder) Send(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockSendService)(nil).Send), arg0, arg1)
 }
 
-// MockAuthService is a mock of AuthService interface
+// MockAuthService is a mock of AuthService interface.
 type MockAuthService struct {
 	ctrl     *gomock.Controller
 	recorder *MockAuthServiceMockRecorder
 }
 
-// MockAuthServiceMockRecorder is the mock recorder for MockAuthService
+// MockAuthServiceMockRecorder is the mock recorder for MockAuthService.
 type MockAuthServiceMockRecorder struct {
 	mock *MockAuthService
 }
 
-// NewMockAuthService creates a new mock instance
+// NewMockAuthService creates a new mock instance.
 func NewMockAuthService(ctrl *gomock.Controller) *MockAuthService {
 	mock := &MockAuthService{ctrl: ctrl}
 	mock.recorder = &MockAuthServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockAuthService) EXPECT() *MockAuthServiceMockRecorder {
 	return m.recorder
 }
 
-// Login mocks base method
+// Login mocks base method.
 func (m *MockAuthService) Login(arg0 context.Context, arg1, arg2 string) (*sms.Token, *sms.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Login", arg0, arg1, arg2)
@@ -83,13 +84,13 @@ func (m *MockAuthService) Login(arg0 context.Context, arg1, arg2 string) (*sms.T
 	return ret0, ret1, ret2
 }
 
-// Login indicates an expected call of Login
+// Login indicates an expected call of Login.
 func (mr *MockAuthServiceMockRecorder) Login(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockAuthService)(nil).Login), arg0, arg1, arg2)
 }
 
-// Refresh mocks base method
+// Refresh mocks base method.
 func (m *MockAuthService) Refresh(arg0 context.Context, arg1 *sms.Token, arg2 bool) (*sms.Token, *sms.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Refresh", arg0, arg1, arg2)
@@ -99,7 +100,7 @@ func (m *MockAuthService) Refresh(arg0 context.Context, arg1 *sms.Token, arg2 bo
 	return ret0, ret1, ret2
 }
 
-// Refresh indicates an expected call of Refresh
+// Refresh indicates an expected call of Refresh.
 func (mr *MockAuthServiceMockRecorder) Refresh(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Refresh", reflect.TypeOf((*MockAuthService)(nil).Refresh), arg0, arg1, arg2)
