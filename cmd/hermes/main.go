@@ -12,8 +12,10 @@ import (
 	"github.com/rugwirobaker/hermes"
 	"github.com/rugwirobaker/hermes/api"
 	"github.com/rugwirobaker/hermes/api/middleware"
+	"github.com/rugwirobaker/hermes/build"
 	"github.com/rugwirobaker/hermes/sqlite"
 	"github.com/uptrace/uptrace-go/uptrace"
+	"go.opentelemetry.io/otel"
 )
 
 func main() {
@@ -32,19 +34,21 @@ func main() {
 
 	ctx := context.Background()
 
-	cli := provideClient()
-
-	info := hermes.Data()
+	info := build.Info()
 
 	uptrace.ConfigureOpentelemetry(
 		// copy your project DSN here or use UPTRACE_DSN env var
 		uptrace.WithDSN(uptraceDSN),
-		uptrace.WithServiceName("hermes"),
+		uptrace.WithServiceName(info.ServiceName),
 		uptrace.WithServiceVersion(info.Version),
 	)
 
 	provider := uptrace.TracerProvider()
 	defer provider.Shutdown(ctx)
+
+	otel.SetTracerProvider(provider)
+
+	cli := provideClient(provider)
 
 	db, err := sqlite.NewDB(dbURL, provider)
 	if err != nil {

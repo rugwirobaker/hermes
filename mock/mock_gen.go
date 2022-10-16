@@ -193,3 +193,33 @@ func (mr *MockStoreMockRecorder) MessageByPhone(arg0, arg1 interface{}) *gomock.
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MessageByPhone", reflect.TypeOf((*MockStore)(nil).MessageByPhone), arg0, arg1)
 }
+
+// MessageBySerial mocks base method.
+func (m *MockStore) MessageBySerial(arg0 context.Context, arg1 string) (*hermes.Message, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MessageBySerial", arg0, arg1)
+	ret0, _ := ret[0].(*hermes.Message)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// MessageBySerial indicates an expected call of MessageBySerial.
+func (mr *MockStoreMockRecorder) MessageBySerial(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MessageBySerial", reflect.TypeOf((*MockStore)(nil).MessageBySerial), arg0, arg1)
+}
+
+// Update mocks base method.
+func (m *MockStore) Update(arg0 context.Context, arg1 *hermes.Message) (*hermes.Message, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", arg0, arg1)
+	ret0, _ := ret[0].(*hermes.Message)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockStoreMockRecorder) Update(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockStore)(nil).Update), arg0, arg1)
+}
