@@ -22,8 +22,11 @@ func Migrate(db *sql.DB, dir Direction) (int, error) {
 		Migrations: []*migrate.Migration{
 			{
 				// id uses current unix timestamp
-				Id:   "1",
-				Up:   []string{createMessagesTable},
+				Id: "1",
+				Up: []string{
+					createMessagesTable,
+					createIndexOnProviderID,
+				},
 				Down: []string{"DROP TABLE messages;"},
 			},
 		},
@@ -43,5 +46,10 @@ const createMessagesTable = `CREATE TABLE IF NOT EXISTS messages (
 	phone TEXT NOT NULL,
 	payload TEXT NOT NULL,
 	cost INTEGER NOT NULL,
-	status TEXT NOT NULL
+	status TEXT NOT NULL,
+	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );`
+
+//flavor:sqlite3
+const createIndexOnProviderID = `CREATE INDEX IF NOT EXISTS idx_provider_id ON messages (provider_id);`
