@@ -53,13 +53,41 @@ func SendHandler(svc hermes.SendService, store hermes.Store) http.HandlerFunc {
 			return
 		}
 
+		if span.IsRecording() {
+			span.SetAttributes(
+				observ.String("message.id", out.ID),
+				observ.Int64("message.serial_id", int64(msg.ID)),
+				observ.Int64("message.cost", msg.Cost),
+			)
+		}
+
 		log.Printf("sent sms to '%s'", in.Recipient)
 		JSON(w, out, 200)
 	}
 }
 
-func GetMessage(store hermes.Store) http.HandlerFunc {
+func GetMessageBySerialID(store hermes.Store) http.HandlerFunc {
 	const op = "handlers.GetMessage"
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := observ.StartSpan(r.Context(), op)
+		defer span.End()
+
+		id := chi.URLParam(r, "id")
+
+		msg, err := store.MessageBySerial(ctx, id)
+		if err != nil {
+			log.Printf("failed to get sms %v", err)
+			span.RecordError(err)
+			HttpError(w, err, 500)
+			return
+		}
+		JSON(w, msg, 200)
+	}
+}
+
+func GetMessageByProviderID(store hermes.Store) http.HandlerFunc {
+	const op = "handlers.GetMessageBYProviderID"
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, span := observ.StartSpan(r.Context(), op)

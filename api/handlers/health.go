@@ -7,6 +7,7 @@ import (
 	"time"
 
 	hermes "github.com/rugwirobaker/hermes"
+	"github.com/rugwirobaker/hermes/build"
 	"github.com/rugwirobaker/hermes/observ"
 )
 
@@ -20,7 +21,7 @@ func HealthHandler() http.HandlerFunc {
 		defer span.End()
 
 		res := &hermes.Health{
-			GitRev:     hermes.Data().Version,
+			GitRev:     build.Info().Version,
 			Uptime:     time.Since(startTime).Seconds(),
 			Goroutines: runtime.NumGoroutine(),
 			Region:     os.Getenv("FLY_REGION"),

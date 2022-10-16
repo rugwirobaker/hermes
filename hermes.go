@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/quarksgroup/sms-client/sms"
+	"github.com/rugwirobaker/hermes/observ"
 )
 
 // SMS ...
@@ -54,8 +55,14 @@ func NewSendService(cli *sms.Client, id, secret, sender, callback string) (SendS
 }
 
 func (s *service) Send(ctx context.Context, message *SMS) (*Report, error) {
+	const op = "service.Send"
+
+	ctx, span := observ.StartSpan(ctx, op)
+	defer span.End()
+
 	token, _, err := s.client.Auth.Refresh(ctx, s.token, false)
 	if err != nil {
+		span.RecordError(err)
 		return nil, err
 	}
 	s.token = token
@@ -74,6 +81,7 @@ func (s *service) Send(ctx context.Context, message *SMS) (*Report, error) {
 
 	report, _, err := s.client.Message.Send(ctx, in)
 	if err != nil {
+		span.RecordError(err)
 		return nil, err
 	}
 	return convertReport(report), nil

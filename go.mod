@@ -13,6 +13,7 @@ require (
 	github.com/rubenv/sql-migrate v1.2.0
 	github.com/uptrace/opentelemetry-go-extra/otelsql v0.1.17
 	github.com/uptrace/uptrace-go v1.10.1
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.36.3
 	go.opentelemetry.io/otel v1.11.0
 	go.opentelemetry.io/otel/trace v1.11.0
 )

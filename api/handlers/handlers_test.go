@@ -14,6 +14,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/rugwirobaker/hermes"
 	"github.com/rugwirobaker/hermes/api/handlers"
+	"github.com/rugwirobaker/hermes/build"
 	"github.com/rugwirobaker/hermes/mock"
 )
 
@@ -98,7 +99,7 @@ func TestVersionHandler(t *testing.T) {
 		t.Errorf("Want response code %d, got %d", want, got)
 	}
 
-	got, want := &hermes.Build{}, hermes.Data()
+	got, want := &build.Build{}, build.Info()
 	json.NewDecoder(w.Body).Decode(got)
 	if diff := cmp.Diff(got, want); len(diff) != 0 {
 		t.Errorf(diff)
@@ -152,6 +153,10 @@ func TestDeliveryHandler(t *testing.T) {
 	ps := mock.NewMockPubsub(controller)
 	ps.EXPECT().Publish(gomock.Any(), gomock.Any())
 
+	store := mock.NewMockStore(controller)
+	store.EXPECT().MessageByID(gomock.Any(), gomock.Any()).Return(dummyMessage, nil)
+	store.EXPECT().Update(gomock.Any(), gomock.Any()).Return(dummyMessage, nil)
+
 	in := new(bytes.Buffer)
 
 	_ = json.NewEncoder(in).Encode(dummyCallback)
@@ -159,7 +164,7 @@ func TestDeliveryHandler(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("POST", "/", in)
 
-	handlers.DeliveryHandler(ps).ServeHTTP(w, r)
+	handlers.DeliveryHandler(ps, store).ServeHTTP(w, r)
 
 	if got, want := w.Code, 200; want != got {
 		t.Errorf("Want response code %d, got %d", want, got)
