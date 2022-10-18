@@ -29,6 +29,17 @@ func Migrate(db *sql.DB, dir Direction) (int, error) {
 				},
 				Down: []string{"DROP TABLE messages;"},
 			},
+			{
+				Id: "2",
+				Up: []string{
+					createIdempotencyKeysTable,
+					createUniqueIndexOnIdempotencyKey,
+				},
+				Down: []string{
+					"DROP TABLE idempotency_keys;",
+					"DROP INDEX idempotency_keys_key_idx;",
+				},
+			},
 		},
 	}
 
@@ -53,3 +64,28 @@ const createMessagesTable = `CREATE TABLE IF NOT EXISTS messages (
 
 //flavor:sqlite3
 const createIndexOnProviderID = `CREATE INDEX IF NOT EXISTS idx_provider_id ON messages (provider_id);`
+
+// flavor:sqlite3
+const createIdempotencyKeysTable = `CREATE TABLE IF NOT EXISTS idempotency_keys (
+	id INTEGER 		PRIMARY KEY AUTOINCREMENT,
+	created_at 		DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	idempotency_key TEXT NOT NULL CHECK (length(idempotency_key) <= 100),
+	last_run_at 	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    locked_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+	/* parameters of the incoming request */
+	request_method  TEXT 		NOT NULL CHECK (length(request_method) <= 10),
+	request_path    TEXT 		NOT NULL CHECK (length(request_path) <= 100),
+	request_params  BLOB 		NOT NULL,
+	request_body    BLOB        NOT NULL,
+	
+	/* for finished requests, stored status code, and body */
+	response_code   INT         NULL,
+	response_body   BLOB        NULL,
+
+	recovery_point  TEXT        NOT NULL CHECK (length(recovery_point) <= 50)
+		
+	/* may add a foreign key to the application(user) table later */
+);
+`
+const createUniqueIndexOnIdempotencyKey = `CREATE UNIQUE INDEX IF NOT EXISTS idempotency_keys_key_idx ON idempotency_keys (idempotency_key);`
