@@ -27,7 +27,7 @@ func Migrate(db *sql.DB, dir Direction) (int, error) {
 					createMessagesTable,
 					createIndexOnProviderID,
 				},
-				Down: []string{"DROP TABLE messages;"},
+				DisableTransactionDown: true,
 			},
 			{
 				Id: "2",
@@ -35,10 +35,15 @@ func Migrate(db *sql.DB, dir Direction) (int, error) {
 					createIdempotencyKeysTable,
 					createUniqueIndexOnIdempotencyKey,
 				},
-				Down: []string{
-					"DROP TABLE idempotency_keys;",
-					"DROP INDEX idempotency_keys_key_idx;",
+				DisableTransactionDown: true,
+			},
+			{
+				Id: "3",
+				Up: []string{
+					alterMessagesTableAddIdempotencyKeyReference,
+					alterMessagesTableAddIdempotencyKeyReferenceIndex,
 				},
+				DisableTransactionDown: true,
 			},
 		},
 	}
@@ -89,3 +94,6 @@ const createIdempotencyKeysTable = `CREATE TABLE IF NOT EXISTS idempotency_keys 
 );
 `
 const createUniqueIndexOnIdempotencyKey = `CREATE UNIQUE INDEX IF NOT EXISTS idempotency_keys_key_idx ON idempotency_keys (idempotency_key);`
+
+const alterMessagesTableAddIdempotencyKeyReference = `ALTER TABLE messages ADD COLUMN idempotency_key_id INTEGER REFERENCES idempotency_keys(id) ON DELETE SET NULL;`
+const alterMessagesTableAddIdempotencyKeyReferenceIndex = `CREATE INDEX IF NOT EXISTS idx_idempotency_key_id ON messages (idempotency_key_id);`

@@ -11,7 +11,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/rugwirobaker/hermes"
 	"github.com/rugwirobaker/hermes/api"
-	"github.com/rugwirobaker/hermes/api/middleware"
 	"github.com/rugwirobaker/hermes/build"
 	"github.com/rugwirobaker/hermes/sqlite"
 	"github.com/uptrace/uptrace-go/uptrace"
@@ -66,10 +65,10 @@ func main() {
 	events := hermes.NewPubsub()
 	defer events.Close()
 
-	cache := middleware.NewMemoryCache()
+	keys := hermes.NewIdempotencyKeyStore(db)
 
 	log.Println("initialized hermes api")
-	api := api.New(service, events, store, cache, provider)
+	api := api.New(service, events, store, keys, provider)
 	mux := chi.NewMux()
 	mux.Mount("/api", api.Handler())
 

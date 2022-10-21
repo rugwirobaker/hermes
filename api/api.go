@@ -17,13 +17,13 @@ type Server struct {
 	events   hermes.Pubsub
 	service  hermes.SendService
 	store    hermes.Store
-	cache    mw.Cache
 	provider trace.TracerProvider
+	keys     hermes.IdempotencyKeyStore
 }
 
 // New api Server instance
-func New(svc hermes.SendService, events hermes.Pubsub, store hermes.Store, cache mw.Cache, provider trace.TracerProvider) *Server {
-	return &Server{service: svc, events: events, store: store, cache: cache, provider: provider}
+func New(svc hermes.SendService, events hermes.Pubsub, store hermes.Store, keys hermes.IdempotencyKeyStore, provider trace.TracerProvider) *Server {
+	return &Server{service: svc, events: events, store: store, keys: keys, provider: provider}
 }
 
 // Handler returns an http.Handler
@@ -35,7 +35,6 @@ func (s Server) Handler() http.Handler {
 	r.Use(middleware.Logger)
 	r.Use(otelchi.Middleware("hermes", otelchi.WithTracerProvider(s.provider)))
 	r.Use(mw.Idempotency)
-	r.Use(mw.Caching(s.cache))
 	r.Use(middleware.Recoverer)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
