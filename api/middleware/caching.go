@@ -32,7 +32,7 @@ func Caching(cache Cache) func(http.Handler) http.Handler {
 			}
 
 			if entry, ok := cache.Get(key); ok && entry.Path == r.URL.Path {
-				log.Printf("[Caching] Cache hit for key: %s", key)
+				log.Printf("[caching] Cache hit for key: %s", key)
 
 				w.WriteHeader(entry.Code)
 				for k, v := range entry.Headers {
@@ -43,7 +43,7 @@ func Caching(cache Cache) func(http.Handler) http.Handler {
 				return
 			}
 
-			log.Printf("[Caching] Cache miss for key: %s", key)
+			log.Printf("[caching] Cache miss for key: %s", key)
 
 			rec := httptest.NewRecorder()
 			next.ServeHTTP(rec, r)

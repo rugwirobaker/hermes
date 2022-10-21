@@ -1,12 +1,13 @@
-ARG GOLANG_VERSION=1.14
+ARG GOLANG_VERSION=1.18
 ARG TINI_VERSION=v0.19.0
 FROM golang:${GOLANG_VERSION}-alpine as build
+RUN apk add build-base
 
 WORKDIR $GOPATH/src/github.com/rugwirobaker/hermes
-COPY go.mod go.sum  ./
+COPY go.mod go.sum ./
 RUN GO111MODULE=on GOPROXY="https://proxy.golang.org" go mod download
 COPY . .
-RUN GO111MODULE=on CGO_ENABLED=0 go build -o /bin/hermes ./cmd/hermes
+RUN GO111MODULE=on CGO_ENABLED=1 go build -o /bin/hermes ./cmd/hermes
 
 FROM scratch
 WORKDIR /

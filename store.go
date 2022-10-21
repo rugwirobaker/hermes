@@ -2,6 +2,7 @@ package hermes
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/rugwirobaker/hermes/observ"
@@ -95,6 +96,9 @@ func (s *store) MessageBySerial(ctx context.Context, id string) (*Message, error
 		&out.UpdateAt,
 	)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 	return &out, tx.Commit()
@@ -125,6 +129,9 @@ func (s *store) MessageByPhone(ctx context.Context, phone string) (*Message, err
 		&out.UpdateAt,
 	)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 	return &out, tx.Commit()
@@ -157,6 +164,9 @@ func (s *store) MessageByID(ctx context.Context, id string) (*Message, error) {
 		&out.UpdateAt,
 	)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 	if err := tx.Commit(); err != nil {
@@ -179,6 +189,9 @@ func (s *store) Update(ctx context.Context, u *Message) (*Message, error) {
 
 	_, err = tx.ExecContext(ctx, "UPDATE messages SET status = ? WHERE id = ?", u.Status, u.ID)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 

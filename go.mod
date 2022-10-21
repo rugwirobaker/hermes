@@ -11,8 +11,7 @@ require (
 	github.com/google/go-cmp v0.5.8
 	github.com/google/uuid v1.3.0
 	github.com/kr/pretty v0.3.0 // indirect
-	github.com/lib/pq v1.10.7
-	github.com/mattn/go-sqlite3 v1.14.15 // indirect
+	github.com/mattn/go-sqlite3 v1.14.15
 	github.com/nhatthm/otelsql v0.4.0
 	github.com/quarksgroup/sms-client v1.0.0
 	github.com/riandyrn/otelchi v0.5.0

@@ -2,4 +2,11 @@
 bin
 .github
 Dockerfile
+var
+data
+scripts
+hermes.json
+example.json
 *.env
+*.yml
+*.toml
