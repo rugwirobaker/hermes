@@ -17,7 +17,7 @@ const (
 	Down Direction = 1
 )
 
-func Migrate(db *sql.DB, dir Direction) (int, error) {
+func Migrate(db *sql.DB, dir Direction, driver string) (int, error) {
 	migrations := &migrate.MemoryMigrationSource{
 		Migrations: []*migrate.Migration{
 			{
@@ -32,7 +32,7 @@ func Migrate(db *sql.DB, dir Direction) (int, error) {
 		},
 	}
 
-	n, err := migrate.Exec(db, Driver, migrations, migrate.MigrationDirection(dir))
+	n, err := migrate.Exec(db, driver, migrations, migrate.MigrationDirection(dir))
 	if err != nil {
 		return n, fmt.Errorf("could not apply migrations %w", err)
 	}
