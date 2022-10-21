@@ -2,18 +2,21 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rugwirobaker/hermes"
 	"github.com/rugwirobaker/hermes/api"
 	"github.com/rugwirobaker/hermes/build"
+	"github.com/rugwirobaker/hermes/api/middleware"
 	"github.com/rugwirobaker/hermes/sqlite"
-	"github.com/uptrace/uptrace-go/uptrace"
+	"github.com/rugwirobaker/hermes/tracing"
 	"go.opentelemetry.io/otel"
 )
 
@@ -24,32 +27,42 @@ func main() {
 	secret := os.Getenv("HELMES_SMS_APP_SECRET")
 	sender := os.Getenv("HELMES_SENDER_IDENTITY")
 	callback := os.Getenv("HELMES_CALLBACK_URL")
-	uptraceDSN := os.Getenv("UPTRACE_DSN")
+	// uptraceDSN := os.Getenv("UPTRACE_DSN")
 	dbURL := os.Getenv("DATABASE_URL")
+	honeyCombKey := os.Getenv("HONEYCOMB_API_KEY")
+	serviceName := os.Getenv("SERVICE_NAME")
+	honeyCombDns := os.Getenv("HONEYCOMB_DSN")
+	dbDriver := os.Getenv("DATABASE_DRIVER")
 
 	if dbURL == "" {
 		dbURL = "hermes.db"
 	}
 
+	if dbDriver == "" {
+		dbDriver = "sqlite3"
+	}
+
 	ctx := context.Background()
 
-	info := build.Info()
+	provider, err := tracing.Provider(ctx, honeyCombKey, honeyCombDns, serviceName)
 
-	uptrace.ConfigureOpentelemetry(
-		// copy your project DSN here or use UPTRACE_DSN env var
-		uptrace.WithDSN(uptraceDSN),
-		uptrace.WithServiceName(info.ServiceName),
-		uptrace.WithServiceVersion(info.Version),
-	)
+	if err != nil {
+		log.Panic(err)
+	}
 
-	provider := uptrace.TracerProvider()
-	defer provider.Shutdown(ctx)
+	defer func() {
+		_ = provider.Shutdown(ctx)
+	}()
 
 	otel.SetTracerProvider(provider)
 
 	cli := provideClient(provider)
 
-	db, err := sqlite.NewDB(dbURL, provider)
+	if strings.Contains(dbDriver, "sqlite") {
+		dbURL = fmt.Sprintf("file:%s?cache=shared&mode=rwc&_journal_mode=WAL", dbURL)
+	}
+
+	db, err := sqlite.NewDB(dbURL, dbDriver, serviceName, provider)
 	if err != nil {
 		log.Fatal(err)
 	}

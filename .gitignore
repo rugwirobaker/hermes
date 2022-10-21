@@ -3,3 +3,4 @@ bin
 dist
 hermes.json
 var
+hermes.db*

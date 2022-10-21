@@ -3,38 +3,36 @@ package sqlite
 import (
 	"context"
 	"database/sql"
-	"fmt"
+
+	// _ "github.com/lib/pq"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rugwirobaker/hermes/observ"
-
-	"github.com/uptrace/opentelemetry-go-extra/otelsql"
-	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
+	"github.com/rugwirobaker/hermes/tracing"
 	"go.opentelemetry.io/otel/trace"
 )
-
-const Driver = "sqlite3"
 
 type DB struct {
 	db *sql.DB
 }
 
-func NewDB(path string, provider trace.TracerProvider) (*DB, error) {
-	dsn := fmt.Sprintf("file:%s?cache=shared&mode=rwc&_journal_mode=WAL", path)
+func NewDB(dsn, driver, server string, provider trace.TracerProvider) (*DB, error) {
 
-	db, err := otelsql.Open(Driver,
-		dsn,
-		otelsql.WithAttributes(semconv.DBSystemSqlite),
-		otelsql.WithDBName(path),
-		otelsql.WithTracerProvider(provider),
-	)
+	// Register the otelsql wrapper for the provided database driver.
+	_, err := tracing.DBTraceDriver(provider, driver, dsn, server)
 
 	if err != nil {
-		return nil, fmt.Errorf("could not open sqlite database %w", err)
+		return nil, err
+	}
+
+	db, err := sql.Open(driver, dsn)
+
+	if err != nil {
+		return nil, err
 	}
 
 	// migrate database
-	_, err = Migrate(db, Up)
+	_, err = Migrate(db, Up, driver)
 	if err != nil {
 		return nil, err
 	}
