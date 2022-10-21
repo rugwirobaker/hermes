@@ -32,6 +32,7 @@ func (s Server) Handler() http.Handler {
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
+	r.Use(mw.WithRequestID)
 	r.Use(middleware.Logger)
 	r.Use(otelchi.Middleware("hermes", otelchi.WithTracerProvider(s.provider)))
 	r.Use(mw.Idempotency)
