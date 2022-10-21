@@ -13,8 +13,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/rugwirobaker/hermes"
 	"github.com/rugwirobaker/hermes/api"
-	"github.com/rugwirobaker/hermes/build"
-	"github.com/rugwirobaker/hermes/api/middleware"
 	"github.com/rugwirobaker/hermes/sqlite"
 	"github.com/rugwirobaker/hermes/tracing"
 	"go.opentelemetry.io/otel"
