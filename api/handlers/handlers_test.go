@@ -14,6 +14,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/rugwirobaker/hermes"
 	"github.com/rugwirobaker/hermes/api/handlers"
+	"github.com/rugwirobaker/hermes/api/request"
 	"github.com/rugwirobaker/hermes/build"
 	"github.com/rugwirobaker/hermes/mock"
 )
@@ -46,6 +47,11 @@ var (
 		Cost:       1,
 		Status:     hermes.St(1),
 	}
+	dummyApp = &hermes.App{
+		ID:     "fake_id",
+		APIKey: "fake_key",
+		Sender: "fake_sender",
+	}
 )
 
 func TestSendHander(t *testing.T) {
@@ -55,8 +61,11 @@ func TestSendHander(t *testing.T) {
 	sender := mock.NewMockSendService(controller)
 	sender.EXPECT().Send(gomock.Any(), gomock.Any()).Return(dummyReport, nil)
 
-	store := mock.NewMockStore(controller)
-	store.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(dummyMessage, nil)
+	messages := mock.NewMockStore(controller)
+	messages.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(dummyMessage, nil)
+
+	apps := mock.NewMockAppStore(controller)
+	apps.EXPECT().Update(gomock.Any(), gomock.Any()).Return(nil)
 
 	in := new(bytes.Buffer)
 
@@ -65,7 +74,12 @@ func TestSendHander(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("POST", "/", in)
 
-	handlers.SendHandler(sender, store).ServeHTTP(w, r)
+	// add mock token to request context
+	r = r.WithContext(
+		request.WithApp(r.Context(), dummyApp),
+	)
+
+	handlers.SendHandler(sender, messages, apps).ServeHTTP(w, r)
 	if got, want := w.Code, http.StatusOK; want != got {
 		t.Errorf("Want response code %d, got %d", want, got)
 	}

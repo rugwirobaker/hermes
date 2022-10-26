@@ -29,6 +29,12 @@ func Migrate(db *sql.DB, dir Direction, driver string) (int, error) {
 				},
 				Down: []string{"DROP TABLE messages;"},
 			},
+			{
+				Id: "2",
+				Up: []string{
+					createAppsTable,
+				},
+			},
 		},
 	}
 
@@ -53,3 +59,14 @@ const createMessagesTable = `CREATE TABLE IF NOT EXISTS messages (
 
 //flavor:sqlite3
 const createIndexOnProviderID = `CREATE INDEX IF NOT EXISTS idx_provider_id ON messages (provider_id);`
+
+// hermes.App migration
+const createAppsTable = `CREATE TABLE IF NOT EXISTS apps (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	name TEXT NOT NULL,
+	token TEXT NOT NULL,
+	sender TEXT NOT NULL,
+	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	message_count INTEGER NOT NULL DEFAULT 0
+);`

@@ -2,6 +2,8 @@ package request
 
 import (
 	"context"
+
+	"github.com/rugwirobaker/hermes"
 )
 
 type key int
@@ -10,6 +12,7 @@ const (
 	requestKey key = iota
 	addressKey
 	idempKey
+	appKey
 )
 
 // WithRequestID sets the given requestID into the context
@@ -40,4 +43,13 @@ func WithIdempotencyKey(parent context.Context, key string) context.Context {
 func IdempotencyFrom(ctx context.Context) (string, bool) {
 	key, ok := ctx.Value(idempKey).(string)
 	return key, ok
+}
+
+func WithApp(ctx context.Context, app *hermes.App) context.Context {
+	return context.WithValue(ctx, appKey, app)
+}
+
+func AppFrom(ctx context.Context) (*hermes.App, bool) {
+	app, ok := ctx.Value(appKey).(*hermes.App)
+	return app, ok
 }

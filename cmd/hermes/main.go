@@ -67,7 +67,9 @@ func main() {
 	}
 	defer db.Close()
 
-	store := hermes.NewStore(db)
+	apps := hermes.NewAppStore(db)
+
+	messages := hermes.NewStore(db)
 
 	service, err := hermes.NewSendService(cli, id, secret, sender, callback)
 	if err != nil {
@@ -80,7 +82,7 @@ func main() {
 	cache := middleware.NewMemoryCache()
 
 	log.Println("initialized hermes api")
-	api := api.New(service, events, store, cache, provider)
+	api := api.New(service, events, apps, messages, cache, provider)
 	mux := chi.NewMux()
 	mux.Mount("/api", api.Handler())
 
