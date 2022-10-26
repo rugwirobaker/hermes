@@ -16,14 +16,22 @@ import (
 type Server struct {
 	events   hermes.Pubsub
 	service  hermes.SendService
-	store    hermes.Store
+	apps     hermes.AppStore
+	messages hermes.Store
 	cache    mw.Cache
 	provider trace.TracerProvider
 }
 
 // New api Server instance
-func New(svc hermes.SendService, events hermes.Pubsub, store hermes.Store, cache mw.Cache, provider trace.TracerProvider) *Server {
-	return &Server{service: svc, events: events, store: store, cache: cache, provider: provider}
+func New(
+	svc hermes.SendService,
+	events hermes.Pubsub,
+	apps hermes.AppStore,
+	messages hermes.Store,
+	cache mw.Cache,
+	provider trace.TracerProvider,
+) *Server {
+	return &Server{service: svc, events: events, apps: apps, messages: messages, cache: cache, provider: provider}
 }
 
 // Handler returns an http.Handler
@@ -39,16 +47,25 @@ func (s Server) Handler() http.Handler {
 	r.Use(middleware.Recoverer)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Welcome to hermes"))
+		w.Write([]byte("Hermes the messenger of the gods at your service😉"))
 	})
 
 	r.Get("/version", handlers.VersionHandler())
 	r.Get("/healthz", handlers.HealthHandler())
-	r.Post("/send", handlers.SendHandler(s.service, s.store))
-	r.Get("/message/serial/{id}", handlers.GetMessageBySerialID(s.store))
-	r.Get("/message/{id}", handlers.GetMessageByProviderID(s.store))
-	r.Get("/events/{id}/status", handlers.SubscribeHandler(s.events))
-	r.HandleFunc("/delivery", handlers.DeliveryHandler(s.events, s.store))
+
+	r.Route("/messages", func(r chi.Router) {
+		r.Use(mw.Authenticate(s.apps))
+		r.Post("/send", handlers.SendHandler(s.service, s.messages, s.apps))
+		r.Get("/serial/{id}", handlers.GetMessageBySerialID(s.messages))
+		r.Get("/{id}", handlers.GetMessageByProviderID(s.messages))
+		r.Get("/events/{id}/status", handlers.SubscribeHandler(s.events))
+	})
+
+	r.Route("/apps", func(r chi.Router) {
+		r.Post("/", handlers.RegisterApp(s.apps))
+		r.Get("/", handlers.ListApps(s.apps))
+	})
+	r.HandleFunc("/delivery", handlers.DeliveryHandler(s.events, s.messages))
 
 	return r
 }

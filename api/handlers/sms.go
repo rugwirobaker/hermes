@@ -8,19 +8,27 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	hermes "github.com/rugwirobaker/hermes"
+	"github.com/rugwirobaker/hermes/api/request"
 	"github.com/rugwirobaker/hermes/observ"
 )
 
 var startTime = time.Now()
 
 // SendHandler ...
-func SendHandler(svc hermes.SendService, store hermes.Store) http.HandlerFunc {
+func SendHandler(svc hermes.SendService, messages hermes.Store, apps hermes.AppStore) http.HandlerFunc {
 	const op = "handlers.SendHandler"
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		ctx, span := observ.StartSpan(r.Context(), op)
 		defer span.End()
+
+		app, ok := request.AppFrom(ctx)
+		if !ok {
+			span.RecordError(hermes.ErrUnauthorized)
+			HttpError(w, hermes.ErrUnauthorized, 401)
+			return
+		}
 
 		in := new(hermes.SMS)
 
@@ -30,6 +38,9 @@ func SendHandler(svc hermes.SendService, store hermes.Store) http.HandlerFunc {
 			http.Error(w, err.Error(), 500)
 			return
 		}
+
+		in.Sender = app.Sender
+
 		out, err := svc.Send(r.Context(), in)
 		if err != nil {
 			log.Printf("failed to send sms %v", err)
@@ -40,14 +51,25 @@ func SendHandler(svc hermes.SendService, store hermes.Store) http.HandlerFunc {
 
 		msg := &hermes.Message{
 			ProviderID: out.ID,
+			From:       app.ID,
 			Recipient:  in.Recipient,
 			Payload:    in.Payload,
 			Status:     "pending",
 			Cost:       out.Cost,
 		}
 
-		if _, err := store.Insert(ctx, msg); err != nil {
+		if _, err := messages.Insert(ctx, msg); err != nil {
 			log.Printf("failed to save sms %v", err)
+			span.RecordError(err)
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		// update the sent message count for the app
+		app.MessageCount = app.MessageCount + out.Cost
+
+		if err := apps.Update(ctx, app); err != nil {
+			log.Printf("failed to update app %v", err)
 			span.RecordError(err)
 			http.Error(w, err.Error(), 500)
 			return

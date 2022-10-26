@@ -2,6 +2,7 @@ package hermes
 
 import (
 	"context"
+	"log"
 
 	"github.com/google/uuid"
 	"github.com/quarksgroup/sms-client/sms"
@@ -10,6 +11,7 @@ import (
 
 // SMS ...
 type SMS struct {
+	Sender    string `json:"sender"`
 	Payload   string `json:"payload"`
 	Recipient string `json:"recipient"`
 }
@@ -34,7 +36,6 @@ type SendService interface {
 }
 
 type service struct {
-	sender   string
 	callback string
 	client   *sms.Client
 	token    *sms.Token
@@ -47,7 +48,6 @@ func NewSendService(cli *sms.Client, id, secret, sender, callback string) (SendS
 		return nil, err
 	}
 	return &service{
-		sender:   sender,
 		callback: callback,
 		client:   cli,
 		token:    token,
@@ -71,11 +71,13 @@ func (s *service) Send(ctx context.Context, message *SMS) (*Report, error) {
 		Refresh: token.Refresh,
 	})
 
+	log.Printf("sender: %s", message.Sender)
+
 	in := sms.Message{
 		ID:         uuid.New().String(),
 		Body:       message.Payload,
 		Recipients: []string{message.Recipient},
-		Sender:     s.sender,
+		Sender:     message.Sender,
 		Report:     s.callback,
 	}
 
