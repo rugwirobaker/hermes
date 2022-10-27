@@ -14,6 +14,7 @@ import (
 	"github.com/rugwirobaker/hermes"
 	"github.com/rugwirobaker/hermes/api"
 	"github.com/rugwirobaker/hermes/api/middleware"
+	"github.com/rugwirobaker/hermes/build"
 	"github.com/rugwirobaker/hermes/sqlite"
 	"github.com/rugwirobaker/hermes/tracing"
 	"go.opentelemetry.io/otel"
@@ -29,9 +30,11 @@ func main() {
 	// uptraceDSN := os.Getenv("UPTRACE_DSN")
 	dbURL := os.Getenv("DATABASE_URL")
 	honeyCombKey := os.Getenv("HONEYCOMB_API_KEY")
-	serviceName := os.Getenv("SERVICE_NAME")
+
 	honeyCombDns := os.Getenv("HONEYCOMB_DSN")
 	dbDriver := os.Getenv("DATABASE_DRIVER")
+
+	serviceName := build.Info().ServiceName
 
 	if dbURL == "" {
 		dbURL = "hermes.db"

@@ -54,6 +54,12 @@ func RegisterApp(store hermes.AppStore) http.HandlerFunc {
 			return
 		}
 
+		if span.IsRecording() {
+			span.SetAttributes(
+				observ.String("app.name", in.Name),
+			)
+		}
+
 		JSON(w, in, http.StatusOK)
 	}
 }
@@ -72,6 +78,12 @@ func ListApps(store hermes.AppStore) http.HandlerFunc {
 			span.RecordError(err)
 			http.Error(w, err.Error(), 500)
 			return
+		}
+
+		if span.IsRecording() {
+			span.SetAttributes(
+				observ.Int64("retrieved.count", int64(len(apps))),
+			)
 		}
 
 		JSON(w, apps, http.StatusOK)
