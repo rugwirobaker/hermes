@@ -18,13 +18,6 @@ type DB struct {
 
 func NewDB(dsn, driver, server string, provider trace.TracerProvider) (*DB, error) {
 
-	// Register the otelsql wrapper for the provided database driver.
-	_, err := tracing.DBTraceDriver(provider, driver, dsn, server)
-
-	if err != nil {
-		return nil, err
-	}
-
 	db, err := sql.Open(driver, dsn)
 
 	if err != nil {
@@ -37,6 +30,19 @@ func NewDB(dsn, driver, server string, provider trace.TracerProvider) (*DB, erro
 		return nil, err
 	}
 
+	if err != nil {
+		return nil, err
+	}
+
+	// Register the otelsql wrapper for the provided database driver.
+	driver, err = tracing.DBTraceDriver(provider, driver, dsn, server)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// reopendb with otelsql wrapper
+	db, err = sql.Open(driver, dsn)
 	if err != nil {
 		return nil, err
 	}
