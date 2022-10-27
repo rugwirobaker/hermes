@@ -24,3 +24,7 @@ func String(key, value string) attribute.KeyValue {
 func Int64(key string, value int64) attribute.KeyValue {
 	return attribute.Int64(key, value)
 }
+
+func Bool(key string, value bool) attribute.KeyValue {
+	return attribute.Bool(key, value)
+}

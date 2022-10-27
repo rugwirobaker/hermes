@@ -53,10 +53,16 @@ func NewDB(dsn, driver, server string, provider trace.TracerProvider) (*DB, erro
 // provides a reference to the database and a fixed timestamp at the start of
 // the transaction. The timestamp allows us to mock time during tests as well.
 func (db *DB) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) {
-	const op = "sqlite.BeginTx"
 
-	ctx, span := observ.StartSpan(ctx, op)
+	span := observ.SpanFromContext(ctx)
 	defer span.End()
+
+	if span.IsRecording() {
+		span.SetAttributes(
+			observ.String("tx.Isolation", opts.Isolation.String()),
+			observ.Bool("tx.ReadOnly", opts.ReadOnly),
+		)
+	}
 
 	tx, err := db.db.BeginTx(ctx, opts)
 	if err != nil {
