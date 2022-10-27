@@ -5,11 +5,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/riandyrn/otelchi"
 	hermes "github.com/rugwirobaker/hermes"
 	"github.com/rugwirobaker/hermes/api/handlers"
 	mw "github.com/rugwirobaker/hermes/api/middleware"
-	"github.com/rugwirobaker/hermes/build"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -39,12 +37,10 @@ func New(
 func (s Server) Handler() http.Handler {
 	r := chi.NewRouter()
 
-	service := build.Info().ServiceName
-
-	r.Use(mw.WithRequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
-	r.Use(otelchi.Middleware(service, otelchi.WithTracerProvider(s.provider)))
+	r.Use(mw.Tracing(s.provider))
+	r.Use(mw.WithRequestID)
 	r.Use(mw.Idempotency)
 	r.Use(mw.Caching(s.cache))
 	r.Use(middleware.Recoverer)
