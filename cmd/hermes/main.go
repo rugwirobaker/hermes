@@ -76,6 +76,12 @@ func main() {
 	log.Println("initialized hermes api")
 	api := api.New(service, events, apps, messages, cache, provider)
 	mux := chi.NewMux()
+
+	// only attach mw.FlyReplay if we're running on fly.io
+	if os.Getenv("FLY_APP_NAME") != "" {
+		mux.Use(middleware.FlyReplay(dsn))
+	}
+
 	mux.Mount("/api", api.Handler())
 
 	if len(port) == 0 {
