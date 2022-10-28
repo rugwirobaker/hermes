@@ -2,7 +2,7 @@
 mount-dir: "/var/lib/hermes"
 
 # The path to where the underlying volume mount is.
-data-dir: "/mnt/litefs"
+data-dir: "/data/litefs"
 
 # Execute this subprocess once LiteFS connects to the cluster. 
 exec: "hermes"
