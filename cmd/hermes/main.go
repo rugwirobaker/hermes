@@ -2,12 +2,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -27,22 +25,17 @@ func main() {
 	secret := os.Getenv("HELMES_SMS_APP_SECRET")
 	sender := os.Getenv("HELMES_SENDER_IDENTITY")
 	callback := os.Getenv("HELMES_CALLBACK_URL")
-	// uptraceDSN := os.Getenv("UPTRACE_DSN")
-	dbURL := os.Getenv("DATABASE_URL")
+	dsn := os.Getenv("DATABASE_URL")
 	honeyCombKey := os.Getenv("HONEYCOMB_API_KEY")
 
 	honeyCombDns := os.Getenv("HONEYCOMB_DSN")
-	dbDriver := os.Getenv("DATABASE_DRIVER")
-
 	serviceName := build.Info().ServiceName
 
-	if dbURL == "" {
-		dbURL = "hermes.db"
+	if dsn == "" {
+		dsn = "hermes.db"
 	}
 
-	if dbDriver == "" {
-		dbDriver = "sqlite3"
-	}
+	log.Printf("Database:%s", dsn)
 
 	ctx := context.Background()
 
@@ -60,11 +53,7 @@ func main() {
 
 	cli := provideClient(provider)
 
-	if strings.Contains(dbDriver, "sqlite") {
-		dbURL = fmt.Sprintf("file:%s?cache=shared&mode=rwc&_journal_mode=WAL", dbURL)
-	}
-
-	db, err := sqlite.NewDB(dbURL, dbDriver, serviceName, provider)
+	db, err := sqlite.NewDB(dsn, serviceName, provider)
 	if err != nil {
 		log.Fatal(err)
 	}

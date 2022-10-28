@@ -3,6 +3,7 @@ package sqlite
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	// _ "github.com/lib/pq"
 
@@ -12,13 +13,15 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+var driver = "sqlite3"
+
 type DB struct {
 	db *sql.DB
 }
 
-func NewDB(dsn, driver, server string, provider trace.TracerProvider) (*DB, error) {
+func NewDB(dsn, server string, provider trace.TracerProvider) (*DB, error) {
 
-	db, err := sql.Open(driver, dsn)
+	db, err := sql.Open(driver, fmt.Sprintf("file:%s?cache=shared&mode=rwc&_journal_mode=WAL", dsn))
 
 	if err != nil {
 		return nil, err
