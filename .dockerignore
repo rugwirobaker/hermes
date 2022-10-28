@@ -3,3 +3,6 @@ bin
 .github
 Dockerfile
 *.env
+*.json
+*.yml
+var
