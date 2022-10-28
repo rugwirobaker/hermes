@@ -10,8 +10,11 @@ processes = []
   dockerfile = "Dockerfile"
 
 [env]
+  PORT=8080
+  DATABASE_URL="/var/lib/hermes/state.db"
 
 [experimental]
+  enable_consul = true
   allowed_public_ports = []
   auto_rollback = true
 
