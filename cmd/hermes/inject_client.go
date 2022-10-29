@@ -19,6 +19,7 @@ func provideClient(tracerProvider trace.TracerProvider) *sms.Client {
 			Base: otelhttp.NewTransport(
 				http.DefaultTransport,
 				otelhttp.WithTracerProvider(tracerProvider),
+				otelhttp.WithPublicEndpoint(),
 			),
 		},
 	}
