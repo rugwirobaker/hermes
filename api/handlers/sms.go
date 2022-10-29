@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -32,7 +31,8 @@ func SendHandler(svc hermes.SendService, messages hermes.Store, apps hermes.AppS
 
 		in := new(hermes.SMS)
 
-		if err := json.NewDecoder(r.Body).Decode(in); err != nil {
+		// call Decode to decode the request body into the struct
+		if err := request.Decode(ctx, r.Body, in); err != nil {
 			log.Printf("failed to send sms %v", err)
 			span.RecordError(err)
 			http.Error(w, err.Error(), 500)
