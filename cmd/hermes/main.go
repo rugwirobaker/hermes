@@ -26,10 +26,30 @@ func main() {
 	sender := os.Getenv("HELMES_SENDER_IDENTITY")
 	callback := os.Getenv("HELMES_CALLBACK_URL")
 	dsn := os.Getenv("DATABASE_URL")
-	honeyCombKey := os.Getenv("HONEYCOMB_API_KEY")
+	honeycombKey := os.Getenv("HONEYCOMB_API_KEY")
 
-	honeyCombDns := os.Getenv("HONEYCOMB_DSN")
+	honeycombDSN := os.Getenv("HONEYCOMB_DSN")
 	serviceName := build.Info().ServiceName
+
+	var environment = "development"
+	if os.Getenv("ENVIRONMENT") != "" {
+		environment = os.Getenv("ENVIRONMENT")
+	}
+
+	var region = "local"
+
+	if os.Getenv("FLY_REGION") != "" {
+		region = os.Getenv("FLY_REGION")
+	}
+
+	var hostID, err = os.Hostname()
+	if err != nil {
+		log.Printf("warn:unable to get hostname: %v", err)
+	}
+
+	if os.Getenv("FLY_ALLOC_ID") != "" {
+		hostID = os.Getenv("FLY_ALLOC_ID")
+	}
 
 	if dsn == "" {
 		dsn = "hermes.db"
@@ -39,7 +59,15 @@ func main() {
 
 	ctx := context.Background()
 
-	provider, err := tracing.Provider(ctx, honeyCombKey, honeyCombDns, serviceName)
+	provider, err := tracing.Provider(
+		ctx,
+		honeycombKey,
+		honeycombDSN,
+		serviceName,
+		environment,
+		region,
+		hostID,
+	)
 
 	if err != nil {
 		log.Panic(err)

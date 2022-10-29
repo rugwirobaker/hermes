@@ -14,15 +14,18 @@ import (
 )
 
 //Provider initiate and retrive TracerProvider intance
-func Provider(ctx context.Context, honeyCombKey, url, service string) (*trace.TracerProvider, error) {
+func Provider(ctx context.Context, key, uri, service, env, region, host string) (*trace.TracerProvider, error) {
 
 	res := resource.NewWithAttributes(
 		semconv.SchemaURL,
 		semconv.ServiceNameKey.String(service),
+		semconv.DeploymentEnvironmentKey.String(env),
+		semconv.CloudRegionKey.String(region),
+		semconv.HostIDKey.String(host),
 	)
 
 	// Create a new OTLP exporter
-	exporter, err := exporter(ctx, honeyCombKey, url)
+	exporter, err := exporter(ctx, key, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -46,10 +49,11 @@ func Provider(ctx context.Context, honeyCombKey, url, service string) (*trace.Tr
 }
 
 // exporter initiate exporter
-func exporter(ctx context.Context, key, dns string) (*otlptrace.Exporter, error) {
+func exporter(ctx context.Context, key, dsn string) (*otlptrace.Exporter, error) {
 
 	exporter, err := otlptrace.New(ctx, otlptracehttp.NewClient(
-		otlptracehttp.WithEndpoint(dns),
+		otlptracehttp.WithEndpoint(dsn),
+		otlptracehttp.WithCompression(otlptracehttp.GzipCompression),
 		otlptracehttp.WithHeaders(map[string]string{
 			"x-honeycomb-team": key,
 			"User-Agent":       "hermes/lumo",

@@ -11,6 +11,7 @@ processes = []
 
 [env]
   PORT=8080
+  ENVIRONMENT="test"
   DATABASE_URL="/var/lib/hermes/state.db"
 
 [experimental]
