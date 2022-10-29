@@ -35,7 +35,7 @@ func main() {
 		dsn = "hermes.db"
 	}
 
-	log.Printf("Database:%s", dsn)
+	log.Printf("database: %s", dsn)
 
 	ctx := context.Background()
 

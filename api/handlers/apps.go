@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
 	"github.com/rugwirobaker/hermes"
+	"github.com/rugwirobaker/hermes/api/request"
 	"github.com/rugwirobaker/hermes/observ"
 )
 
@@ -19,8 +19,9 @@ func RegisterApp(store hermes.AppStore) http.HandlerFunc {
 
 		in := new(hermes.App)
 
-		if err := json.NewDecoder(r.Body).Decode(in); err != nil {
-			log.Printf("failed to register app %v", err)
+		// call Decode to decode the request body into the struct
+		if err := request.Decode(ctx, r.Body, in); err != nil {
+			log.Printf("failed to send sms %v", err)
 			span.RecordError(err)
 			http.Error(w, err.Error(), 500)
 			return
