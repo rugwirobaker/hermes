@@ -41,7 +41,7 @@ func SendHandler(svc hermes.SendService, messages hermes.Store, apps hermes.AppS
 
 		in.Sender = app.Sender
 
-		out, err := svc.Send(r.Context(), in)
+		out, err := svc.Send(ctx, in)
 		if err != nil {
 			log.Printf("failed to send sms %v", err)
 			span.RecordError(err)
