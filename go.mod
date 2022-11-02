@@ -3,7 +3,7 @@ module github.com/rugwirobaker/hermes
 go 1.16
 
 require (
-	github.com/avast/retry-go v3.0.0+incompatible // indirect
+	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/golang/mock v1.6.0
 	github.com/google/go-cmp v0.5.8

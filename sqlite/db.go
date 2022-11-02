@@ -74,8 +74,9 @@ func (db *DB) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) {
 
 	// Return wrapper Tx that includes the transaction start time.
 	return &Tx{
-		Tx: tx,
-		db: db,
+		Tx:   tx,
+		db:   db,
+		span: span,
 	}, nil
 }
 

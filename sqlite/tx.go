@@ -6,20 +6,28 @@ import (
 
 	"github.com/avast/retry-go"
 	"github.com/mattn/go-sqlite3"
+	"github.com/rugwirobaker/hermes/observ"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // Tx wraps the SQL Tx object to provide a timestamp at the start of the transaction.
 type Tx struct {
 	*sql.Tx
-	db *DB
+	db   *DB
+	span trace.Span
 	// Now time.Time
 }
 
 // Commit commits the transaction.
 func (tx *Tx) Commit() (err error) {
-	err = Retry(func() error {
+	attempts, err := Retry(func() error {
 		return tx.Tx.Commit()
 	})
+	if tx.span.IsRecording() {
+		tx.span.SetAttributes(
+			observ.Int64("attempts", int64(attempts)),
+		)
+	}
 	return
 }
 
@@ -28,8 +36,8 @@ func (tx *Tx) Rollback() error {
 	return tx.Tx.Rollback()
 }
 
-func Retry(fn func() error) error {
-	return retry.Do(
+func Retry(fn func() error) (attempts int, err error) {
+	err = retry.Do(
 		fn,
 		retry.RetryIf(func(err error) bool {
 			if e, ok := err.(sqlite3.Error); ok {
@@ -41,7 +49,10 @@ func Retry(fn func() error) error {
 		retry.DelayType(retry.BackOffDelay),
 		retry.Delay(100),
 		retry.OnRetry(func(n uint, err error) {
-			log.Println("retrying ExecContext", "attempt", n, "error", err)
+			// record the number of retries
+			attempts = int(n)
+			log.Println("retrying commit", "attempt", n, "error", err)
 		}),
 	)
+	return
 }
