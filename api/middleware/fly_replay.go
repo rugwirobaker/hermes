@@ -40,7 +40,7 @@ func FlyReplay(dsn string) func(http.Handler) http.Handler {
 			}
 
 			if primary != "" {
-				log.Printf("redirecting to primary instance: %q", string(primary))
+				log.Printf("redirecting to primary instance: %q\n", string(primary))
 				w.Header().Set("fly-replay", "instance="+string(primary))
 				return
 			}

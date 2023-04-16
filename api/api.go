@@ -61,6 +61,7 @@ func (s Server) Handler() http.Handler {
 	})
 
 	r.Route("/apps", func(r chi.Router) {
+		r.Use(mw.Authenticate(s.apps))
 		r.Post("/", handlers.RegisterApp(s.apps))
 		r.Get("/", handlers.ListApps(s.apps))
 	})
