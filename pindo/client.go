@@ -85,7 +85,10 @@ func (c *Client) Do(ctx context.Context, method, endpoint string, in, out interf
 }
 
 func (c *Client) NewRequest(ctx context.Context, method, path string, in interface{}, headers map[string][]string) (*http.Request, error) {
-	var body io.Reader
+	var (
+		body io.Reader
+		url  = c.baseURL + path
+	)
 
 	if headers == nil {
 		headers = make(map[string][]string)
@@ -100,7 +103,7 @@ func (c *Client) NewRequest(ctx context.Context, method, path string, in interfa
 		body = bytes.NewReader(b)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, path, body)
+	req, err := http.NewRequestWithContext(ctx, method, url, body)
 
 	if err != nil {
 		return nil, err
