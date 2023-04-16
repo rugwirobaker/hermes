@@ -78,7 +78,7 @@ func SendHandler(svc hermes.SendService, messages hermes.Store, apps hermes.AppS
 
 		if span.IsRecording() {
 			span.SetAttributes(
-				observ.String("message.id", out.ID),
+				observ.Int64("message.id", int64(msg.ID)),
 				observ.Int64("message.serial_id", int64(msg.ID)),
 				observ.String("message.cost", fmt.Sprintf("%f", out.Cost)),
 			)

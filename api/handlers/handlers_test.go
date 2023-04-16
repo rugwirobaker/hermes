@@ -25,7 +25,7 @@ var (
 		Recipient: "User_Phone",
 	}
 	dummyReport = &hermes.Report{
-		ID:   "message id",
+		ID:   1,
 		Cost: 1,
 	}
 	dummyEvent = &hermes.Event{
@@ -41,7 +41,7 @@ var (
 	}
 	dummyMessage = &hermes.Message{
 		ID:         1,
-		ProviderID: "fake_id",
+		ProviderID: 1,
 		Recipient:  "078xxxxxxx",
 		Payload:    "Hello",
 		Cost:       1,

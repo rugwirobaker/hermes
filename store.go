@@ -11,7 +11,7 @@ import (
 type Message struct {
 	ID         int       `json:"id"`
 	From       string    `json:"from"`
-	ProviderID string    `json:"provider_id"`
+	ProviderID int       `json:"provider_id"`
 	Recipient  string    `json:"phone"`
 	Payload    string    `json:"payload"`
 	Cost       float64   `json:"cost"`

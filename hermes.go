@@ -18,7 +18,7 @@ type SMS struct {
 // Report message queueing status
 type Report struct {
 	Count  int64   `json:"count"`
-	ID     string  `json:"id"`
+	ID     int     `json:"id"`
 	Cost   float64 `json:"cost"`
 	Status string  `json:"status"`
 }
