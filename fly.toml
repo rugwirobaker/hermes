@@ -1,50 +1,42 @@
-# fly.toml file generated for helmes on 2021-10-21T15:27:35+02:00
+# fly.toml file generated for hermes on 2023-04-16T01:23:47+02:00
 
 app = "hermes"
-
 kill_signal = "SIGINT"
 kill_timeout = 5
-processes = []
-
-[build]
-  dockerfile = "Dockerfile"
-
-[env]
-  PORT=8080
-  ENVIRONMENT="test"
-  DATABASE_URL="/var/lib/hermes/state.db"
+primary_region = "lhr"
 
 [experimental]
-  enable_consul = true
-  allowed_public_ports = []
   auto_rollback = true
+  enable_consul = true
+
+[env]
+  DATABASE_URL = "/var/lib/hermes/state.db"
+  ENVIRONMENT = "test"
+  PORT = "8080"
+
+[[mounts]]
+  source = "data_machines"
+  destination = "/data"
 
 [[services]]
-  http_checks = []
+  protocol = "tcp"
   internal_port = 8080
   processes = ["app"]
-  protocol = "tcp"
-  script_checks = []
 
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
   [services.concurrency]
+    type = "connections"
     hard_limit = 25
     soft_limit = 20
-    type = "connections"
-
-  [[services.ports]]
-    handlers = ["http"]
-    port = 80
-
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = 443
 
   [[services.tcp_checks]]
-    grace_period = "1s"
     interval = "15s"
-    restart_limit = 0
     timeout = "2s"
-    
-[mounts]
-  source = "data"
-  destination = "/data"
+    grace_period = "1s"
+    restart_limit = 0
