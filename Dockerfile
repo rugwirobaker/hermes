@@ -15,8 +15,7 @@ FROM alpine
 WORKDIR /
 EXPOSE 8080
 
-RUN apk add bash fuse sqlite ca-certificates curl
-RUN ln -s /bin/fusermount /bin/fusermount3
+RUN apk add bash fuse3 sqlite ca-certificates curl
 
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /bin/hermes /bin/hermes
