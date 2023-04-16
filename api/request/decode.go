@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 
+	"github.com/rugwirobaker/hermes"
 	"github.com/rugwirobaker/hermes/observ"
 )
 
@@ -18,9 +19,20 @@ func Decode(ctx context.Context, body io.ReadCloser, v interface{}) error {
 	_, span := observ.StartSpan(ctx, op)
 	defer span.End()
 
-	if err := json.NewDecoder(body).Decode(v); err != nil {
+	err := json.NewDecoder(body).Decode(v)
+	switch {
+	case err == nil:
+
+	case err == io.ErrUnexpectedEOF:
+		err := hermes.NewErrInvalid("request body is invalid")
 		span.RecordError(err)
 		return err
+	case err == io.EOF:
+		err := hermes.NewErrInvalid("request body is empty")
+		span.RecordError(err)
+	case err != nil:
+		err := hermes.NewErrInvalidWithErr("failed to decode request body", err)
+		span.RecordError(err)
 	}
 
 	return nil

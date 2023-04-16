@@ -1,6 +1,5 @@
-package handlers
+package render
 
-//Error ...
 type Error struct {
 	Message string `json:"message"`
 }

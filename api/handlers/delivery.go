@@ -1,11 +1,12 @@
 package handlers
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
 	"github.com/rugwirobaker/hermes"
+	"github.com/rugwirobaker/hermes/api/render"
+	"github.com/rugwirobaker/hermes/api/request"
 	"github.com/rugwirobaker/hermes/observ"
 )
 
@@ -19,15 +20,18 @@ func DeliveryHandler(events hermes.Pubsub, store hermes.Store) http.HandlerFunc 
 		defer span.End()
 
 		if r.Method != http.MethodPost {
-			w.WriteHeader(http.StatusOK)
+			err := hermes.NewErrInvalid("invalid method")
+			span.RecordError(err)
+			render.HttpError(w, err)
 			return
 		}
 
 		var in hermes.Callback
 
-		if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
-			log.Printf("failed to serialize request")
-			JSON(w, NewError(err.Error()), 500)
+		if err := request.Decode(r.Context(), r.Body, &in); err != nil {
+			log.Printf("failed to decode request body %v", err)
+			span.RecordError(err)
+			render.HttpError(w, err)
 			return
 		}
 
@@ -35,7 +39,8 @@ func DeliveryHandler(events hermes.Pubsub, store hermes.Store) http.HandlerFunc 
 		msg, err := store.MessageByID(r.Context(), in.MsgRef)
 		if err != nil {
 			log.Printf("failed to find message in store")
-			JSON(w, NewError(err.Error()), 500)
+			span.RecordError(err)
+			render.HttpError(w, err)
 			return
 		}
 
@@ -44,13 +49,14 @@ func DeliveryHandler(events hermes.Pubsub, store hermes.Store) http.HandlerFunc 
 
 		if _, err := store.Update(r.Context(), msg); err != nil {
 			log.Printf("failed to update message status")
-			JSON(w, NewError(err.Error()), 500)
+			span.RecordError(err)
+			render.HttpError(w, err)
 			return
 		}
 
 		events.Publish(r.Context(), convertEvent(in))
 
-		JSON(w, map[string]string{"status": "ok"}, http.StatusOK)
+		render.JSON(w, map[string]string{"status": "ok"}, http.StatusOK)
 	}
 }
 

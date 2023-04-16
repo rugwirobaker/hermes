@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/rugwirobaker/hermes"
+	"github.com/rugwirobaker/hermes/api/render"
 	"github.com/rugwirobaker/hermes/api/request"
 	"github.com/rugwirobaker/hermes/observ"
 )
@@ -23,18 +24,18 @@ func RegisterApp(store hermes.AppStore) http.HandlerFunc {
 		if err := request.Decode(ctx, r.Body, in); err != nil {
 			log.Printf("failed to send sms %v", err)
 			span.RecordError(err)
-			http.Error(w, err.Error(), 500)
+			render.HttpError(w, err)
 			return
 		}
 
 		// do some validation
 		if in.Name == "" {
-			http.Error(w, "app name is required", 400)
+			render.HttpError(w, hermes.NewErrInvalid("app name is required"))
 			return
 		}
 
 		if in.Sender == "" {
-			http.Error(w, "app sender is required", 400)
+			render.HttpError(w, hermes.NewErrInvalid("app sender is required"))
 			return
 		}
 
@@ -61,7 +62,7 @@ func RegisterApp(store hermes.AppStore) http.HandlerFunc {
 			)
 		}
 
-		JSON(w, in, http.StatusOK)
+		render.JSON(w, in, http.StatusOK)
 	}
 }
 
@@ -87,6 +88,6 @@ func ListApps(store hermes.AppStore) http.HandlerFunc {
 			)
 		}
 
-		JSON(w, apps, http.StatusOK)
+		render.JSON(w, apps, http.StatusOK)
 	}
 }

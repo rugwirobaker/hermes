@@ -2,6 +2,7 @@ package hermes
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/rugwirobaker/hermes/observ"
@@ -51,20 +52,21 @@ func (s *store) Insert(ctx context.Context, u *Message) (*Message, error) {
 
 	tx, err := s.db.BeginTx(ctx, sqlite.TxOptions(false))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("insert: %w", err)
 	}
 	defer tx.Rollback()
 
-	// scan
-
 	res, err := tx.ExecContext(ctx, "INSERT INTO messages (provider_id, phone, payload, cost, status) VALUES (?, ?, ?, ?, ?)", u.ProviderID, u.Recipient, u.Payload, u.Cost, u.Status)
 	if err != nil {
-		return nil, err
+		if sqlite.IsUniqueConstraintError(err) || sqlite.IsForeignKeyConstraintError(err) {
+			return nil, ErrAlreadyExists
+		}
+		return nil, fmt.Errorf("insert: %w", err)
 	}
 
 	id, err := res.LastInsertId()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("insert: %w", err)
 	}
 	u.ID = int(id)
 
@@ -79,7 +81,10 @@ func (s *store) MessageBySerial(ctx context.Context, id string) (*Message, error
 
 	tx, err := s.db.BeginTx(ctx, sqlite.TxOptions(true))
 	if err != nil {
-		return nil, err
+		if sqlite.IsNoRowsError(err) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("message by serial: %w", err)
 	}
 	defer tx.Rollback()
 
@@ -96,6 +101,9 @@ func (s *store) MessageBySerial(ctx context.Context, id string) (*Message, error
 		&out.UpdateAt,
 	)
 	if err != nil {
+		if sqlite.IsNoRowsError(err) {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 	return &out, tx.Commit()
@@ -109,7 +117,7 @@ func (s *store) MessageByPhone(ctx context.Context, phone string) (*Message, err
 
 	tx, err := s.db.BeginTx(ctx, sqlite.TxOptions(true))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("message by phone: %w", err)
 	}
 	defer tx.Rollback()
 
@@ -126,6 +134,9 @@ func (s *store) MessageByPhone(ctx context.Context, phone string) (*Message, err
 		&out.UpdateAt,
 	)
 	if err != nil {
+		if sqlite.IsNoRowsError(err) {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 	return &out, tx.Commit()
@@ -158,10 +169,13 @@ func (s *store) MessageByID(ctx context.Context, id string) (*Message, error) {
 		&out.UpdateAt,
 	)
 	if err != nil {
+		if sqlite.IsNoRowsError(err) {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 	if err := tx.Commit(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("message by id: %w", err)
 	}
 	return &out, nil
 }
@@ -180,6 +194,9 @@ func (s *store) Update(ctx context.Context, u *Message) (*Message, error) {
 
 	_, err = tx.ExecContext(ctx, "UPDATE messages SET status = ? WHERE id = ?", u.Status, u.ID)
 	if err != nil {
+		if sqlite.IsNoRowsError(err) {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 

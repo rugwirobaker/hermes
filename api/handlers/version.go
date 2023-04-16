@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/rugwirobaker/hermes/api/render"
 	"github.com/rugwirobaker/hermes/build"
 	"github.com/rugwirobaker/hermes/observ"
 )
@@ -15,6 +16,6 @@ func VersionHandler() http.HandlerFunc {
 		_, span := observ.StartSpan(r.Context(), op)
 		defer span.End()
 
-		JSON(w, build.Info(), http.StatusOK)
+		render.JSON(w, build.Info(), http.StatusOK)
 	}
 }

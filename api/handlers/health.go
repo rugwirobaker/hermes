@@ -7,6 +7,7 @@ import (
 	"time"
 
 	hermes "github.com/rugwirobaker/hermes"
+	"github.com/rugwirobaker/hermes/api/render"
 	"github.com/rugwirobaker/hermes/build"
 	"github.com/rugwirobaker/hermes/observ"
 )
@@ -26,6 +27,6 @@ func HealthHandler() http.HandlerFunc {
 			Goroutines: runtime.NumGoroutine(),
 			Region:     os.Getenv("FLY_REGION"),
 		}
-		JSON(w, res, http.StatusOK)
+		render.JSON(w, res, http.StatusOK)
 	}
 }

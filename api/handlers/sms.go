@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	hermes "github.com/rugwirobaker/hermes"
+	"github.com/rugwirobaker/hermes/api/render"
 	"github.com/rugwirobaker/hermes/api/request"
 	"github.com/rugwirobaker/hermes/observ"
 )
@@ -26,7 +27,7 @@ func SendHandler(svc hermes.SendService, messages hermes.Store, apps hermes.AppS
 		app, ok := request.AppFrom(ctx)
 		if !ok {
 			span.RecordError(hermes.ErrUnauthorized)
-			HttpError(w, hermes.ErrUnauthorized, 401)
+			render.HttpError(w, hermes.ErrUnauthorized)
 			return
 		}
 
@@ -36,17 +37,32 @@ func SendHandler(svc hermes.SendService, messages hermes.Store, apps hermes.AppS
 		if err := request.Decode(ctx, r.Body, in); err != nil {
 			log.Printf("failed to send sms %v", err)
 			span.RecordError(err)
-			http.Error(w, err.Error(), 500)
+			render.HttpError(w, err)
 			return
 		}
 
 		in.Sender = app.Sender
 
+		// do some validation
+		if in.Recipient == "" {
+			err := hermes.NewErrInvalid("recipient is required")
+			span.RecordError(err)
+			render.HttpError(w, err)
+			return
+		}
+
+		if in.Payload == "" {
+			err := hermes.NewErrInvalid("payload is required")
+			span.RecordError(err)
+			render.HttpError(w, err)
+			return
+		}
+
 		out, err := svc.Send(ctx, in)
 		if err != nil {
 			log.Printf("failed to send sms %v", err)
 			span.RecordError(err)
-			http.Error(w, err.Error(), 500)
+			render.HttpError(w, err)
 			return
 		}
 
@@ -72,7 +88,7 @@ func SendHandler(svc hermes.SendService, messages hermes.Store, apps hermes.AppS
 		if err := apps.Update(ctx, app); err != nil {
 			log.Printf("failed to update app %v", err)
 			span.RecordError(err)
-			http.Error(w, err.Error(), 500)
+			render.HttpError(w, err)
 			return
 		}
 
@@ -85,7 +101,7 @@ func SendHandler(svc hermes.SendService, messages hermes.Store, apps hermes.AppS
 		}
 
 		log.Printf("sent sms to '%s'", in.Recipient)
-		JSON(w, out, 200)
+		render.JSON(w, out, 200)
 	}
 }
 
@@ -102,10 +118,10 @@ func GetMessageBySerialID(store hermes.Store) http.HandlerFunc {
 		if err != nil {
 			log.Printf("failed to get sms %v", err)
 			span.RecordError(err)
-			HttpError(w, err, 500)
+			render.HttpError(w, err)
 			return
 		}
-		JSON(w, msg, 200)
+		render.JSON(w, msg, 200)
 	}
 }
 
@@ -122,9 +138,9 @@ func GetMessageByProviderID(store hermes.Store) http.HandlerFunc {
 		if err != nil {
 			log.Printf("failed to get sms %v", err)
 			span.RecordError(err)
-			HttpError(w, err, 500)
+			render.HttpError(w, err)
 			return
 		}
-		JSON(w, msg, 200)
+		render.JSON(w, msg, 200)
 	}
 }
