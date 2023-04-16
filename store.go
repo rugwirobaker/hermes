@@ -14,7 +14,7 @@ type Message struct {
 	ProviderID string    `json:"provider_id"`
 	Recipient  string    `json:"phone"`
 	Payload    string    `json:"payload"`
-	Cost       int64     `json:"cost"`
+	Cost       float64   `json:"cost"`
 	Status     Status    `json:"status"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdateAt   time.Time `json:"updated_at"`

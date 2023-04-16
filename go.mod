@@ -10,7 +10,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/mattn/go-sqlite3 v1.14.15
 	github.com/nhatthm/otelsql v0.4.0
-	github.com/quarksgroup/sms-client v1.0.0
 	github.com/rubenv/sql-migrate v1.2.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.36.3
 	go.opentelemetry.io/otel v1.11.0

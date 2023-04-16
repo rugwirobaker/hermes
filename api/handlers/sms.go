@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -54,7 +55,7 @@ func SendHandler(svc hermes.SendService, messages hermes.Store, apps hermes.AppS
 			From:       app.ID,
 			Recipient:  in.Recipient,
 			Payload:    in.Payload,
-			Status:     "pending",
+			Status:     hermes.Status(out.Status),
 			Cost:       out.Cost,
 		}
 
@@ -66,7 +67,7 @@ func SendHandler(svc hermes.SendService, messages hermes.Store, apps hermes.AppS
 		}
 
 		// update the sent message count for the app
-		app.MessageCount = app.MessageCount + out.Cost
+		app.MessageCount = app.MessageCount + out.Count
 
 		if err := apps.Update(ctx, app); err != nil {
 			log.Printf("failed to update app %v", err)
@@ -79,7 +80,7 @@ func SendHandler(svc hermes.SendService, messages hermes.Store, apps hermes.AppS
 			span.SetAttributes(
 				observ.String("message.id", out.ID),
 				observ.Int64("message.serial_id", int64(msg.ID)),
-				observ.Int64("message.cost", msg.Cost),
+				observ.String("message.cost", fmt.Sprintf("%f", out.Cost)),
 			)
 		}
 

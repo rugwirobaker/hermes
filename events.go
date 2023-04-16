@@ -14,7 +14,7 @@ type Status string
 // Possible delivery statuses
 const (
 	Unknown   Status = "unknown"
-	Delivered Status = "delivered"
+	Sent      Status = "sent"
 	Failed    Status = "failed"
 	Pending   Status = "pending"
 	Submitted Status = "submitted"
@@ -25,7 +25,7 @@ const (
 func St(in int) Status {
 	switch in {
 	case 1:
-		return Delivered
+		return Sent
 	case 2:
 		return Failed
 	case 4:

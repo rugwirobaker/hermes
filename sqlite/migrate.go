@@ -35,6 +35,12 @@ func Migrate(db *sql.DB, dir Direction, driver string) (int, error) {
 					createAppsTable,
 				},
 			},
+			{
+				Id: "3",
+				Up: []string{
+					alterMessagesTableChangeCostToFloat,
+				},
+			},
 		},
 	}
 
@@ -70,3 +76,25 @@ const createAppsTable = `CREATE TABLE IF NOT EXISTS apps (
 	updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	message_count INTEGER NOT NULL DEFAULT 0
 );`
+
+// change messages.cost to float64
+const alterMessagesTableChangeCostToFloat = `CREATE TEMPORARY TABLE messages_temp (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	provider_id TEXT NOT NULL,
+	phone TEXT NOT NULL,
+	payload TEXT NOT NULL,
+	cost REAL NOT NULL, -- Changed to REAL
+	status TEXT NOT NULL,
+	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+INSERT INTO messages_temp (id, 
+	provider_id, 
+	phone, 
+	payload, 
+	cost, 
+	status, 
+	created_at, 
+updated_at) SELECT id, provider_id, phone, payload, CAST(cost AS REAL), status, created_at, updated_at FROM messages;
+DROP TABLE messages;
+ALTER TABLE messages_temp RENAME TO messages;`

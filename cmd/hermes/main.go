@@ -45,7 +45,7 @@ func main() {
 
 	otel.SetTracerProvider(provider)
 
-	client := provideClient(provider)
+	client := createSmsClient(config.apiKey, provider)
 
 	db, err := sqlite.NewDB(config.dsn, config.serviceName, provider)
 	if err != nil {
@@ -57,12 +57,7 @@ func main() {
 
 	messages := hermes.NewStore(db)
 
-	service, err := hermes.NewSendService(
-		client,
-		config.id,
-		config.secret, config.sender,
-		config.callbackURL,
-	)
+	service, err := hermes.NewSendService(client, config.sender)
 
 	if err != nil {
 		log.Fatalf("could not initialize sms service: %v", err)
@@ -114,13 +109,11 @@ func main() {
 }
 
 type config struct {
-	port        string
-	id          string
-	secret      string
-	sender      string
-	callbackURL string
-	dsn         string
-	honecomb    struct {
+	port     string
+	apiKey   string
+	sender   string
+	dsn      string
+	honecomb struct {
 		apiKey string
 		dsn    string
 	}
@@ -135,10 +128,8 @@ func newConfig() *config {
 
 	config := &config{
 		port:        os.Getenv("PORT"),
-		id:          os.Getenv("HELMES_SMS_APP_ID"),
-		secret:      os.Getenv("HELMES_SMS_APP_SECRET"),
+		apiKey:      os.Getenv("PINDO_API_KEY"),
 		sender:      os.Getenv("HELMES_SENDER_IDENTITY"),
-		callbackURL: os.Getenv("HELMES_CALLBACK_URL"),
 		dsn:         os.Getenv("DATABASE_URL"),
 		serviceName: build.Info().ServiceName,
 		environment: "development",

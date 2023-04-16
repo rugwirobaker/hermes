@@ -4,9 +4,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/google/uuid"
-	"github.com/quarksgroup/sms-client/sms"
 	"github.com/rugwirobaker/hermes/observ"
+	"github.com/rugwirobaker/hermes/pindo"
 )
 
 // SMS ...
@@ -18,8 +17,10 @@ type SMS struct {
 
 // Report message queueing status
 type Report struct {
-	ID   string `json:"id"`
-	Cost int64  `json:"cost"`
+	Count  int64   `json:"count"`
+	ID     string  `json:"id"`
+	Cost   float64 `json:"cost"`
+	Status string  `json:"status"`
 }
 
 type Callback struct {
@@ -36,21 +37,15 @@ type SendService interface {
 }
 
 type service struct {
-	callback string
-	client   *sms.Client
-	token    *sms.Token
+	sender string
+	client *pindo.Client
 }
 
 // NewSendService instance of service
-func NewSendService(cli *sms.Client, id, secret, sender, callback string) (SendService, error) {
-	token, _, err := cli.Auth.Login(context.Background(), id, secret)
-	if err != nil {
-		return nil, err
-	}
+func NewSendService(cli *pindo.Client, sender string) (SendService, error) {
 	return &service{
-		callback: callback,
-		client:   cli,
-		token:    token,
+		sender: sender,
+		client: cli,
 	}, nil
 }
 
@@ -60,38 +55,32 @@ func (s *service) Send(ctx context.Context, message *SMS) (*Report, error) {
 	ctx, span := observ.StartSpan(ctx, op)
 	defer span.End()
 
-	token, _, err := s.client.Auth.Refresh(ctx, s.token, false)
+	sendRequest := &pindo.SendRequest{
+		Sender: message.Sender,
+		To:     message.Recipient,
+		Text:   message.Payload,
+	}
+
+	if sendRequest.Sender == "" {
+		sendRequest.Sender = s.sender
+	}
+
+	log.Println("sending message", sendRequest)
+
+	res, err := s.client.Send(ctx, sendRequest)
 	if err != nil {
 		span.RecordError(err)
 		return nil, err
 	}
-	s.token = token
-	ctx = context.WithValue(ctx, sms.TokenKey{}, &sms.Token{
-		Token:   token.Token,
-		Refresh: token.Refresh,
-	})
 
-	log.Printf("sender: %s", message.Sender)
-
-	in := sms.Message{
-		ID:         uuid.New().String(),
-		Body:       message.Payload,
-		Recipients: []string{message.Recipient},
-		Sender:     message.Sender,
-		Report:     s.callback,
-	}
-
-	report, _, err := s.client.Message.Send(ctx, in)
-	if err != nil {
-		span.RecordError(err)
-		return nil, err
-	}
-	return convertReport(report), nil
+	return convertResponse(res), nil
 }
 
-func convertReport(report *sms.Report) *Report {
+func convertResponse(res *pindo.SendResponse) *Report {
 	return &Report{
-		ID:   report.ID,
-		Cost: report.Cost,
+		Count:  res.ItemCount,
+		ID:     res.SmsID,
+		Status: res.Status,
+		Cost:   res.TotalCost,
 	}
 }
