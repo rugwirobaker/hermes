@@ -19,58 +19,24 @@ import (
 )
 
 func main() {
+	config := newConfig()
 
-	port := os.Getenv("PORT")
-	id := os.Getenv("HELMES_SMS_APP_ID")
-	secret := os.Getenv("HELMES_SMS_APP_SECRET")
-	sender := os.Getenv("HELMES_SENDER_IDENTITY")
-	callback := os.Getenv("HELMES_CALLBACK_URL")
-	dsn := os.Getenv("DATABASE_URL")
-	honeycombKey := os.Getenv("HONEYCOMB_API_KEY")
-
-	honeycombDSN := os.Getenv("HONEYCOMB_DSN")
-	serviceName := build.Info().ServiceName
-
-	var environment = "development"
-	if os.Getenv("ENVIRONMENT") != "" {
-		environment = os.Getenv("ENVIRONMENT")
-	}
-
-	var region = "local"
-
-	if os.Getenv("FLY_REGION") != "" {
-		region = os.Getenv("FLY_REGION")
-	}
-
-	var hostID, err = os.Hostname()
-	if err != nil {
-		log.Printf("warn:unable to get hostname: %v", err)
-	}
-
-	if os.Getenv("FLY_ALLOC_ID") != "" {
-		hostID = os.Getenv("FLY_ALLOC_ID")
-	}
-
-	if dsn == "" {
-		dsn = "hermes.db"
-	}
-
-	log.Printf("database: %s", dsn)
+	log.Printf("database: %s", config.dsn)
 
 	ctx := context.Background()
 
 	provider, err := tracing.Provider(
 		ctx,
-		honeycombKey,
-		honeycombDSN,
-		serviceName,
-		environment,
-		region,
-		hostID,
+		config.honecomb.apiKey,
+		config.honecomb.dsn,
+		config.serviceName,
+		config.environment,
+		config.region,
+		config.hostID,
 	)
 
 	if err != nil {
-		log.Panic(err)
+		log.Fatalf("could not initialize tracing provider: %v", err)
 	}
 
 	defer func() {
@@ -79,9 +45,9 @@ func main() {
 
 	otel.SetTracerProvider(provider)
 
-	cli := provideClient(provider)
+	client := provideClient(provider)
 
-	db, err := sqlite.NewDB(dsn, serviceName, provider)
+	db, err := sqlite.NewDB(config.dsn, config.serviceName, provider)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -91,7 +57,13 @@ func main() {
 
 	messages := hermes.NewStore(db)
 
-	service, err := hermes.NewSendService(cli, id, secret, sender, callback)
+	service, err := hermes.NewSendService(
+		client,
+		config.id,
+		config.secret, config.sender,
+		config.callbackURL,
+	)
+
 	if err != nil {
 		log.Fatalf("could not initialize sms service: %v", err)
 	}
@@ -106,20 +78,14 @@ func main() {
 	mux := chi.NewMux()
 
 	// only attach mw.FlyReplay if we're running on fly.io
-	if os.Getenv("FLY_APP_NAME") != "" {
-		mux.Use(middleware.FlyReplay(dsn))
+	if config.flyAppName != "" {
+		mux.Use(middleware.FlyReplay(config.dsn))
 	}
 
 	mux.Mount("/api", api.Handler())
 
-	if len(port) == 0 {
-		port = "8080"
-	}
+	srv := NewServer(config.port, mux)
 
-	srv := &http.Server{
-		Addr:    ":" + port,
-		Handler: mux,
-	}
 	idleConnsClosed := make(chan struct{})
 
 	go func() {
@@ -131,18 +97,112 @@ func main() {
 		ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 		defer cancel()
 
-		if err := srv.Shutdown(ctx); err != nil {
+		if err := srv.Stop(ctx); err != nil {
 			log.Fatal(err)
 		}
 		close(idleConnsClosed)
 	}()
 
-	log.Printf("starting application at port %v", port)
+	log.Printf("starting application at port %v", config.port)
 
-	err = srv.ListenAndServe()
+	err = srv.Start()
 
 	if err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
 	<-idleConnsClosed
+}
+
+type config struct {
+	port        string
+	id          string
+	secret      string
+	sender      string
+	callbackURL string
+	dsn         string
+	honecomb    struct {
+		apiKey string
+		dsn    string
+	}
+	flyAppName  string
+	serviceName string
+	environment string
+	region      string
+	hostID      string
+}
+
+func newConfig() *config {
+
+	config := &config{
+		port:        os.Getenv("PORT"),
+		id:          os.Getenv("HELMES_SMS_APP_ID"),
+		secret:      os.Getenv("HELMES_SMS_APP_SECRET"),
+		sender:      os.Getenv("HELMES_SENDER_IDENTITY"),
+		callbackURL: os.Getenv("HELMES_CALLBACK_URL"),
+		dsn:         os.Getenv("DATABASE_URL"),
+		serviceName: build.Info().ServiceName,
+		environment: "development",
+		flyAppName:  os.Getenv("FLY_APP_NAME"),
+		region:      "local",
+		hostID:      "local",
+		honecomb: struct {
+			apiKey string
+			dsn    string
+		}{
+			apiKey: os.Getenv("HONEYCOMB_API_KEY"),
+			dsn:    os.Getenv("HONEYCOMB_DSN"),
+		},
+	}
+
+	if os.Getenv("ENVIRONMENT") != "" {
+		config.environment = os.Getenv("ENVIRONMENT")
+	}
+
+	if os.Getenv("FLY_REGION") != "" {
+		config.region = os.Getenv("FLY_REGION")
+	}
+
+	if config.port == "" {
+		config.port = "8080"
+	}
+
+	var err error
+
+	if config.hostID, err = os.Hostname(); err != nil {
+		log.Printf("warn:unable to get hostname: %v", err)
+	}
+
+	if os.Getenv("FLY_ALLOC_ID") != "" {
+		config.hostID = os.Getenv("FLY_ALLOC_ID")
+	}
+
+	if config.dsn == "" {
+		config.dsn = "hermes.db"
+	}
+	return config
+}
+
+// this is to make it easy to run several services in the same process on different ports
+// metrics for example should be on a different port
+type Server struct {
+	*http.Server
+}
+
+func NewServer(port string, handler http.Handler) *Server {
+	return &Server{
+		Server: &http.Server{
+			Addr:        ":" + port,
+			Handler:     handler,
+			IdleTimeout: 5 * time.Second,
+			ReadTimeout: 5 * time.Second,
+		},
+	}
+}
+
+func (s *Server) Start() error {
+	return s.ListenAndServe()
+}
+
+func (s *Server) Stop(ctx context.Context) error {
+	return s.Shutdown(ctx)
 }
