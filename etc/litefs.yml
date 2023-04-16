@@ -1,14 +1,31 @@
-# The path to where the SQLite database will be accessed.
-mount-dir: "/var/lib/hermes"
+# This directory is where your application will access the database.
+fuse: 
+  dir: "/var/lib/hermes"
 
-# The path to where the underlying volume mount is.
-data-dir: "/data/litefs"
+# This directory is where LiteFS will store internal data.
+# You must place this directory on a persistent volume.
+data: 
+  dir: "/data/litefs"
+
+exit-on-error: false
 
 # Execute this subprocess once LiteFS connects to the cluster. 
-exec: "hermes"
+exec:
+  - cmd: "hermes migrate"
+    if-candidate: true
+
+  - cmd: "hermes serve"
 
 # These environment variables will be available in your Fly.io application.
 # You must specify "experiement.enable_consul" for FLY_CONSUL_URL to be available.
-consul:
-  url: "${FLY_CONSUL_URL}"
+lease:
+  type: "consul"
+  hostname: "${HOSTNAME}"
   advertise-url: "http://${HOSTNAME}.vm.${FLY_APP_NAME}.internal:20202"
+  candidate: ${FLY_REGION == PRIMARY_REGION}
+  promote: true
+  consul: 
+    key: "litefs/${FLY_APP_NAME}"
+    url: "${FLY_CONSUL_URL}"
+
+  

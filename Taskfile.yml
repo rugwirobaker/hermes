@@ -41,7 +41,8 @@ tasks:
     desc: Start the application
     deps: [build]
     cmds:
-      - ./bin/hermes
+      - ./bin/hermes migrate
+      - ./bin/hermes serve
   
   test:
     desc: Run unit tests

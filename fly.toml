@@ -10,6 +10,7 @@ primary_region = "lhr"
   enable_consul = true
 
 [env]
+  PRIMARY_REGION = "lhr"
   DATABASE_URL = "/var/lib/hermes/state.db"
   ENVIRONMENT = "test"
   PORT = "8080"

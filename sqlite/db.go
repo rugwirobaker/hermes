@@ -20,32 +20,17 @@ type DB struct {
 }
 
 func NewDB(dsn, server string, provider trace.TracerProvider) (*DB, error) {
-
-	db, err := sql.Open(driver, fmt.Sprintf("file:%s?cache=shared&mode=rwc&_journal_mode=WAL", dsn))
-
-	if err != nil {
-		return nil, err
-	}
-
-	// migrate database
-	_, err = Migrate(db, Up, driver)
-	if err != nil {
-		return nil, err
-	}
-
-	if err != nil {
-		return nil, err
-	}
+	dsn = fmt.Sprintf("file:%s?cache=shared&mode=rwc&_journal_mode=WAL", dsn)
 
 	// Register the otelsql wrapper for the provided database driver.
-	driver, err = tracing.DBTraceDriver(provider, driver, dsn, server)
+	driver, err := tracing.DBTraceDriver(provider, driver, dsn, server)
 
 	if err != nil {
 		return nil, err
 	}
 
 	// reopendb with otelsql wrapper
-	db, err = sql.Open(driver, dsn)
+	db, err := sql.Open(driver, dsn)
 	if err != nil {
 		return nil, err
 	}

@@ -1,7 +1,6 @@
 package sqlite
 
 import (
-	"database/sql"
 	"fmt"
 
 	migrate "github.com/rubenv/sql-migrate"
@@ -17,7 +16,7 @@ const (
 	Down Direction = 1
 )
 
-func Migrate(db *sql.DB, dir Direction, driver string) (int, error) {
+func (db *DB) Migrate(dir Direction) (int, error) {
 	migrations := &migrate.MemoryMigrationSource{
 		Migrations: []*migrate.Migration{
 			{
@@ -44,7 +43,7 @@ func Migrate(db *sql.DB, dir Direction, driver string) (int, error) {
 		},
 	}
 
-	n, err := migrate.Exec(db, driver, migrations, migrate.MigrationDirection(dir))
+	n, err := migrate.Exec(db.db, driver, migrations, migrate.MigrationDirection(dir))
 	if err != nil {
 		return n, fmt.Errorf("could not apply migrations %w", err)
 	}
