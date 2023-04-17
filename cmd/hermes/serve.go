@@ -98,10 +98,10 @@ func runServe(ctx context.Context, args []string) (err error) {
 	api := api.New(service, events, apps, messages, cache, provider)
 	mux := chi.NewMux()
 
-	// only attach mw.FlyReplay if we're running on fly.io
-	if config.flyAppName != "" {
-		mux.Use(middleware.FlyReplay(config.dsn))
-	}
+	// // only attach mw.FlyReplay if we're running on fly.io
+	// if config.flyAppName != "" {
+	// 	mux.Use(middleware.FlyReplay(config.dsn))
+	// }
 
 	mux.Mount("/api", api.Handler())
 

@@ -9,6 +9,17 @@ data:
 
 exit-on-error: false
 
+proxy:
+  # Bind address for the proxy to listen on.
+  addr: ":8080"
+
+  # Hostport of your application.
+  target: "localhost:8081"
+
+  # Filename of the SQLite database you want to use for TXID tracking.
+  db: "my.db"
+
+
 # Execute this subprocess once LiteFS connects to the cluster. 
 exec:
   - cmd: "hermes migrate"
