@@ -22,11 +22,10 @@ To function Hermes requires a couple of environment variables:
 cat .template.env
 PORT=8080
 PINDO_API_KEY="pindo.io api key"
-HELMES_SENDER_IDENTITY="fdi sms sender id"
+HELMES_SENDER_IDENTITY="who is sending the message"
 ```
 
-Besides the port the other variables can be obtained by subscribing to
-https://www.fdibiz.com/ messaging API.
+This uses https://pindo.io so you'll have to create an account and an API KEY.
 
 ## Try hermes
 
