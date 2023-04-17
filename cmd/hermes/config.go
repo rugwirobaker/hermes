@@ -28,7 +28,7 @@ func newConfig() *config {
 	config := &config{
 		port:        os.Getenv("PORT"),
 		apiKey:      os.Getenv("PINDO_API_KEY"),
-		sender:      os.Getenv("HELMES_SENDER_IDENTITY"),
+		sender:      os.Getenv("HERMES_SENDER_IDENTITY"),
 		dsn:         os.Getenv("DATABASE_URL"),
 		serviceName: build.Info().ServiceName,
 		environment: "development",

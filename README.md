@@ -22,7 +22,7 @@ To function Hermes requires a couple of environment variables:
 cat .template.env
 PORT=8080
 PINDO_API_KEY="pindo.io api key"
-HELMES_SENDER_IDENTITY="who is sending the message"
+HERMES_SENDER_IDENTITY="who is sending the message"
 ```
 
 This uses https://pindo.io so you'll have to create an account and an API KEY.
