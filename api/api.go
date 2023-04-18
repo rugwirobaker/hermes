@@ -16,8 +16,8 @@ type Server struct {
 	events   hermes.Pubsub
 	service  hermes.SendService
 	apps     hermes.AppStore
-	messages hermes.Store
-	cache    mw.Cache
+	messages hermes.MessageStore
+	cache    hermes.IdempotencyKeyStore
 	provider trace.TracerProvider
 }
 
@@ -26,8 +26,8 @@ func New(
 	svc hermes.SendService,
 	events hermes.Pubsub,
 	apps hermes.AppStore,
-	messages hermes.Store,
-	cache mw.Cache,
+	messages hermes.MessageStore,
+	cache hermes.IdempotencyKeyStore,
 	provider trace.TracerProvider,
 ) *Server {
 	return &Server{service: svc, events: events, apps: apps, messages: messages, cache: cache, provider: provider}

@@ -21,7 +21,7 @@ type Message struct {
 	UpdateAt   time.Time `json:"updated_at"`
 }
 
-type Store interface {
+type MessageStore interface {
 	// Insert a new message
 	Insert(context.Context, *Message) (*Message, error)
 	// MessageByID returns a message by serial id
@@ -34,7 +34,7 @@ type Store interface {
 	Update(context.Context, *Message) (*Message, error)
 }
 
-func NewStore(db *sqlite.DB) Store {
+func NewStore(db *sqlite.DB) MessageStore {
 	return &store{
 		db: db,
 	}
@@ -45,7 +45,7 @@ type store struct {
 }
 
 func (s *store) Insert(ctx context.Context, u *Message) (*Message, error) {
-	const op = "store.Insert"
+	const op = "messageStore.Insert"
 
 	ctx, span := observ.StartSpan(ctx, op)
 	defer span.End()

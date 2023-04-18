@@ -11,7 +11,7 @@ import (
 )
 
 // DeliveryHandler handles delivery callback reception
-func DeliveryHandler(events hermes.Pubsub, store hermes.Store) http.HandlerFunc {
+func DeliveryHandler(events hermes.Pubsub, store hermes.MessageStore) http.HandlerFunc {
 	const op = "handlers.DeliveryHandler"
 
 	return func(w http.ResponseWriter, r *http.Request) {
