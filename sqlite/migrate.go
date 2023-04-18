@@ -52,6 +52,12 @@ func (db *DB) Migrate(dir Direction) (int, error) {
 					alterMessagesTableChangeProviderIDToInteger,
 				},
 			},
+			{
+				Id: "6",
+				Up: []string{
+					createTableIdempotencyKeys,
+				},
+			},
 		},
 	}
 
@@ -143,3 +149,13 @@ INSERT INTO messages_temp (id,
 	updated_at) SELECT id, CAST(provider_id AS INTEGER), phone, payload, cost, status, created_at, updated_at FROM messages;
 DROP TABLE messages;
 ALTER TABLE messages_temp RENAME TO messages;`
+
+var createTableIdempotencyKeys = `CREATE TABLE IF NOT EXISTS idempotency_keys (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	key TEXT NOT NULL UNIQUE,
+	code INTEGER NOT NULL,
+	headers TEXT NOT NULL,
+	body BLOB NOT NULL,
+	path TEXT NOT NULL,
+	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);`

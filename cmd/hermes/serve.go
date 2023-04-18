@@ -13,10 +13,15 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/rugwirobaker/hermes"
 	"github.com/rugwirobaker/hermes/api"
-	"github.com/rugwirobaker/hermes/api/middleware"
+	"github.com/rugwirobaker/hermes/observ"
 	"github.com/rugwirobaker/hermes/sqlite"
 	"github.com/rugwirobaker/hermes/tracing"
 	"go.opentelemetry.io/otel"
+)
+
+var (
+	cleanupInterval = 2 * time.Minute
+	retention       = 2 * time.Hour
 )
 
 type Server struct {
@@ -92,7 +97,7 @@ func runServe(ctx context.Context, args []string) (err error) {
 	events := hermes.NewPubsub()
 	defer events.Close()
 
-	cache := middleware.NewMemoryCache()
+	cache := hermes.NewIdempotencyKeyStore(db)
 
 	log.Println("initialized hermes api")
 	api := api.New(service, events, apps, messages, cache, provider)
@@ -117,6 +122,8 @@ func runServe(ctx context.Context, args []string) (err error) {
 		}
 	}()
 
+	go startCleanupRoutine(ctx, db, cleanupInterval, retention)
+
 	<-signalCh
 	log.Println("received signal, shutting down")
 
@@ -134,4 +141,27 @@ func runServe(ctx context.Context, args []string) (err error) {
 	log.Println("server shutdown")
 	return
 
+}
+
+func startCleanupRoutine(ctx context.Context, db *sqlite.DB, interval, ret time.Duration) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	ctx, span := observ.StartSpan(ctx, "cleanup")
+	defer span.End()
+
+	for {
+		select {
+		case <-ticker.C:
+			numDeleted, err := sqlite.DeleteOldRecords(ctx, db, ret)
+			if err != nil {
+				log.Printf("Error cleaning up old records: %v", err)
+			} else {
+				log.Printf("Deleted %d old records", numDeleted)
+			}
+		case <-ctx.Done():
+			log.Printf("Cleanup routine stopped")
+			return
+		}
+	}
 }

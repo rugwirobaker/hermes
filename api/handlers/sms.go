@@ -16,7 +16,7 @@ import (
 var startTime = time.Now()
 
 // SendHandler ...
-func SendHandler(svc hermes.SendService, messages hermes.Store, apps hermes.AppStore) http.HandlerFunc {
+func SendHandler(svc hermes.SendService, messages hermes.MessageStore, apps hermes.AppStore) http.HandlerFunc {
 	const op = "handlers.SendHandler"
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -105,7 +105,7 @@ func SendHandler(svc hermes.SendService, messages hermes.Store, apps hermes.AppS
 	}
 }
 
-func GetMessageBySerialID(store hermes.Store) http.HandlerFunc {
+func GetMessageBySerialID(store hermes.MessageStore) http.HandlerFunc {
 	const op = "handlers.GetMessage"
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -125,7 +125,7 @@ func GetMessageBySerialID(store hermes.Store) http.HandlerFunc {
 	}
 }
 
-func GetMessageByProviderID(store hermes.Store) http.HandlerFunc {
+func GetMessageByProviderID(store hermes.MessageStore) http.HandlerFunc {
 	const op = "handlers.GetMessageBYProviderID"
 
 	return func(w http.ResponseWriter, r *http.Request) {

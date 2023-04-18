@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"sync"
 
+	"github.com/rugwirobaker/hermes"
 	"github.com/rugwirobaker/hermes/api/request"
 )
 
@@ -21,7 +21,7 @@ const (
 
 // Caching records(httptest.ResponseRecorder) and whole responses(http.Response) to the cache(hermes.Cache) with the Idempotency-Key header as the key.
 // Next time it sees the same Idempotency-Key in a request, it will return the recorded response. If it sees a different Idempotency-Key, it will call the next handler.
-func Caching(cache Cache) func(http.Handler) http.Handler {
+func Caching(cache hermes.IdempotencyKeyStore) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 
@@ -31,7 +31,8 @@ func Caching(cache Cache) func(http.Handler) http.Handler {
 				return
 			}
 
-			if entry, ok := cache.Get(key); ok && entry.Path == r.URL.Path {
+			entry, err := cache.Get(r.Context(), key)
+			if err == nil && entry.Path == r.URL.Path {
 				log.Printf("[Caching] Cache hit for key: %s", key)
 
 				w.WriteHeader(entry.Code)
@@ -43,15 +44,32 @@ func Caching(cache Cache) func(http.Handler) http.Handler {
 				return
 			}
 
+			if err != hermes.ErrNotFound {
+				log.Printf("[Caching] Cache error for key: %s, error: %v", key, err)
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			log.Printf("[Caching] Cache miss for key: %s", key)
 
 			rec := httptest.NewRecorder()
 			next.ServeHTTP(rec, r)
-			entry := NewEntry(rec.Code, rec.Header(), r.URL.Path, rec.Body.Bytes())
-			cache.Set(key, entry)
+
+			record := &hermes.IdempotencyRecord{
+				Key:     key,
+				Code:    rec.Code,
+				Headers: rec.Header().Clone(),
+				Body:    rec.Body.Bytes(),
+				Path:    r.URL.Path,
+			}
+			if err := cache.Set(r.Context(), record); err != nil {
+				log.Printf("[Caching] Cache set error for key: %s, error: %v", key, err)
+			}
+
 			for k, v := range rec.Header() {
 				w.Header()[k] = v
 			}
+
 			w.WriteHeader(rec.Code)
 			w.Write(rec.Body.Bytes())
 		}
@@ -59,58 +77,3 @@ func Caching(cache Cache) func(http.Handler) http.Handler {
 		return http.HandlerFunc(fn)
 	}
 }
-
-type Cache interface {
-	Get(key string) (*Entry, bool)
-	Set(key string, entry *Entry)
-}
-
-type Entry struct {
-	Code    int
-	Headers http.Header
-	Body    []byte
-	Path    string
-}
-
-func NewEntry(code int, headers http.Header, path string, body []byte) *Entry {
-	return &Entry{
-		Code:    code,
-		Headers: headers,
-		Body:    body,
-		Path:    path,
-	}
-}
-
-type memoryCache struct {
-	mu    *sync.RWMutex
-	cache map[string]*Entry
-}
-
-func NewMemoryCache() Cache {
-	return &memoryCache{
-		mu:    &sync.RWMutex{},
-		cache: make(map[string]*Entry),
-	}
-}
-
-func (c *memoryCache) Get(key string) (*Entry, bool) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	entry, ok := c.cache[key]
-	return entry, ok
-}
-
-func (c *memoryCache) Set(key string, entry *Entry) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.cache[key] = entry
-}
-
-// func isCachable(r *http.Request) bool {
-// 	for _, method := range cacheAbleMethods {
-// 		if method == r.Method {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }
