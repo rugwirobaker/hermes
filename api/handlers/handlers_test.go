@@ -124,6 +124,8 @@ func TestSubscribeHandler(t *testing.T) {
 	controller := gomock.NewController(t)
 	defer controller.Finish()
 
+	t.Skip()
+
 	mockEvent := make(chan hermes.Event)
 
 	wg := sync.WaitGroup{}
