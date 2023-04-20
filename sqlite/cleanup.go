@@ -4,16 +4,9 @@ import (
 	"context"
 	"fmt"
 	"time"
-
-	"github.com/rugwirobaker/hermes/observ"
 )
 
 func DeleteOldRecords(ctx context.Context, db *DB, ret time.Duration) (int64, error) {
-	const op = "CleanUpIdempotencyKeys"
-
-	ctx, span := observ.StartSpan(ctx, op)
-	defer span.End()
-
 	tx, err := db.BeginTx(ctx, TxOptions(false))
 	if err != nil {
 		return 0, fmt.Errorf("error deleting old records: %w", err)
