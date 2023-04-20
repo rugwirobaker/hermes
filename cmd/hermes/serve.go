@@ -122,7 +122,17 @@ func runServe(ctx context.Context, args []string) (err error) {
 		}
 	}()
 
-	go startCleanupRoutine(ctx, db, cleanupInterval, retention)
+	// make sure we are on primary node
+	// check if we're on the primary instance
+	primary, err := db.IsPrimary()
+	if err != nil {
+		log.Printf("could not check if we're on primary node: %v", err)
+	}
+
+	if primary != "" {
+		log.Println("starting cleanup routine on primary")
+		go startCleanupRoutine(ctx, db, cleanupInterval, retention)
+	}
 
 	<-signalCh
 	log.Println("received signal, shutting down")
