@@ -1,9 +1,11 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/rugwirobaker/hermes"
+	"github.com/rugwirobaker/hermes/api/render"
 	"github.com/rugwirobaker/hermes/api/request"
 	"github.com/rugwirobaker/hermes/observ"
 )
@@ -20,14 +22,17 @@ func Authenticate(apps hermes.AppStore) Middleware {
 
 			token := r.Header.Get("Authorization")
 			if token == "" {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				err := fmt.Errorf("unauthorized: missing token")
+				span.RecordError(err)
+				render.HttpError(w, err)
 				return
 			}
 
 			// check if the token exists in the db
 			app, err := apps.FindByToken(ctx, token)
 			if err != nil {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				span.RecordError(err)
+				render.HttpError(w, err)
 				return
 			}
 

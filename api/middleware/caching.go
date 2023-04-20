@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 
 	"github.com/rugwirobaker/hermes"
 	"github.com/rugwirobaker/hermes/api/request"
@@ -13,17 +14,30 @@ const (
 	IdempotencyKeyHeader = "Idempotency-Key"
 )
 
-// var cacheAbleMethods = []string{
-// 	http.MethodPost,
-// 	http.MethodPut,
-// 	http.MethodDelete,
-// }
+var cacheAbleMethods = []string{
+	http.MethodPost,
+	http.MethodPut,
+	http.MethodDelete,
+}
+
+func isCacheableMethod(method string, cacheAbleMethods []string) bool {
+	for _, m := range cacheAbleMethods {
+		if strings.EqualFold(m, method) {
+			return true
+		}
+	}
+	return false
+}
 
 // Caching records(httptest.ResponseRecorder) and whole responses(http.Response) to the cache(hermes.Cache) with the Idempotency-Key header as the key.
 // Next time it sees the same Idempotency-Key in a request, it will return the recorded response. If it sees a different Idempotency-Key, it will call the next handler.
 func Caching(cache hermes.IdempotencyKeyStore) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
+			if !isCacheableMethod(r.Method, cacheAbleMethods) {
+				next.ServeHTTP(w, r)
+				return
+			}
 
 			key, ok := request.IdempotencyFrom(r.Context())
 			if !ok {
