@@ -9,7 +9,7 @@ RUN apk add build-base
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/root/.cache/go-download GOPROXY="https://proxy.golang.org" go mod download
 COPY . .
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=1 go build -o /bin/hermes ./cmd/hermes
+RUN --mount=type=cache,target=/root/.cache/go-build go build -buildvcs=false -ldflags "-s -w -extldflags '-static'" -tags osusergo,netgo -o /bin/hermes ./cmd/hermes
 
 FROM alpine
 WORKDIR /
