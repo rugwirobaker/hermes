@@ -122,15 +122,14 @@ func runServe(ctx context.Context, args []string) (err error) {
 		}
 	}()
 
-	// make sure we are on primary node
-	// check if we're on the primary instance
 	primary, err := db.IsPrimary()
 	if err != nil {
-		log.Printf("could not check if we're on primary node: %v", err)
+		log.Fatalf("could not determine if this is the primary node: %v", err)
 	}
 
-	if primary != "" {
-		log.Println("starting cleanup routine on primary")
+	if primary {
+		log.Println("this is the primary node, starting cleanup routine")
+
 		go startCleanupRoutine(ctx, db, cleanupInterval, retention)
 	}
 

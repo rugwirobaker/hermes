@@ -69,10 +69,9 @@ func (db *DB) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) {
 	}, nil
 }
 
-// IsPrimary checks if we're on the primary instance by reading the .primary file
-// that contains the primary instance's IP address. If the file doesn't exist we're either
-// on the primary instance or litefs is not running on the instance.
-func (db *DB) IsPrimary() (string, error) {
+// Primary returns the address of the primary database.
+// if the current node is the primary, it returns an empty string.
+func (db *DB) Primary() (string, error) {
 	primaryFilename := filepath.Join(filepath.Dir(db.dsn), ".primary")
 
 	primary, err := os.ReadFile(primaryFilename)
@@ -83,6 +82,14 @@ func (db *DB) IsPrimary() (string, error) {
 		return "", err
 	}
 	return string(primary), nil
+}
+
+func (db *DB) IsPrimary() (bool, error) {
+	primary, err := db.Primary()
+	if err != nil {
+		return false, err
+	}
+	return primary == "", nil
 }
 
 // Close closes the database connection.
