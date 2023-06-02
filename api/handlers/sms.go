@@ -144,3 +144,26 @@ func GetMessageByProviderID(store hermes.MessageStore) http.HandlerFunc {
 		render.JSON(w, msg, 200)
 	}
 }
+
+func ListMessages(store hermes.MessageStore) http.HandlerFunc {
+	const op = "handlers.ListMessages"
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := observ.StartSpan(r.Context(), op)
+		defer span.End()
+
+		var opts = new(hermes.ListOptions)
+
+		// get the query params:?
+		// ?&offset=0&limit=10&status=delivered
+
+		msgs, err := store.List(ctx, opts)
+		if err != nil {
+			log.Printf("failed to get sms %v", err)
+			span.RecordError(err)
+			render.HttpError(w, err)
+			return
+		}
+		render.JSON(w, msgs, 200)
+	}
+}

@@ -3,6 +3,7 @@ package hermes
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/rugwirobaker/hermes/observ"
@@ -21,6 +22,17 @@ type Message struct {
 	UpdateAt   time.Time `json:"updated_at"`
 }
 
+type ListOptions struct {
+	// Limit the number of results
+	Limit int
+	// Offset the results
+	Offset int
+	// Filter by status
+	// Status Status
+	// // Filter by phone
+	// Phone string
+}
+
 type MessageStore interface {
 	// Insert a new message
 	Insert(context.Context, *Message) (*Message, error)
@@ -32,6 +44,8 @@ type MessageStore interface {
 	MessageByID(context.Context, string) (*Message, error)
 	// Update a message(set status to delivered/failed)
 	Update(context.Context, *Message) (*Message, error)
+	// List messages
+	List(context.Context, *ListOptions) ([]*Message, error)
 }
 
 func NewStore(db *sqlite.DB) MessageStore {
@@ -201,4 +215,55 @@ func (s *store) Update(ctx context.Context, u *Message) (*Message, error) {
 	}
 
 	return u, tx.Commit()
+}
+
+func (s *store) List(ctx context.Context, opts *ListOptions) ([]*Message, error) {
+	const op = "store.List"
+
+	ctx, span := observ.StartSpan(ctx, op)
+	defer span.End()
+
+	tx, err := s.db.BeginTx(ctx, sqlite.TxOptions(true))
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	var out []*Message
+
+	query := "SELECT id, provider_id, phone, payload, cost, status, created_at, updated_at FROM messages"
+	if opts.Limit > 0 {
+		query += " LIMIT " + strconv.Itoa(opts.Limit)
+	}
+	if opts.Offset > 0 {
+		query += " OFFSET " + strconv.Itoa(opts.Offset)
+	}
+
+	rows, err := tx.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("list: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var m Message
+		err := rows.Scan(
+			&m.ID,
+			&m.ProviderID,
+			&m.Recipient,
+			&m.Payload,
+			&m.Cost,
+			&m.Status,
+			&m.CreatedAt,
+			&m.UpdateAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("list: %w", err)
+		}
+		out = append(out, &m)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("list: %w", err)
+	}
+	return out, tx.Commit()
 }

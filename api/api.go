@@ -54,6 +54,7 @@ func (s Server) Handler() http.Handler {
 
 	r.Route("/messages", func(r chi.Router) {
 		r.Use(mw.Authenticate(s.apps))
+		r.Get("/", handlers.ListMessages(s.messages))
 		r.Post("/send", handlers.SendHandler(s.service, s.messages, s.apps))
 		r.Get("/serial/{id}", handlers.GetMessageBySerialID(s.messages))
 		r.Get("/{id}", handlers.GetMessageByProviderID(s.messages))
