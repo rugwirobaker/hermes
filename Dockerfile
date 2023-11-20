@@ -1,7 +1,7 @@
 ARG GOLANG_VERSION=1.19.0
 ARG TINI_VERSION=v0.19.0
 
-FROM flyio/litefs:sha-6421a22 as litefs
+FROM flyio/litefs:sha-1db7517 as litefs
 
 FROM golang:${GOLANG_VERSION}-alpine as build
 WORKDIR $GOPATH/src/github.com/rugwirobaker/hermes
@@ -25,6 +25,6 @@ COPY --from=litefs /usr/local/bin/litefs /usr/local/bin/litefs
 ADD etc/litefs.yml /etc/litefs.yml
 
 # Ensure our mount & data directories exists before mounting with LiteFS.
-RUN mkdir -p /var/lib/hermes /mnt/litefs
+RUN mkdir -p /var/lib/litefs /mnt/litefs
 
 ENTRYPOINT ["litefs", "mount"]

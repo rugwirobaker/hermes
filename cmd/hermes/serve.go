@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/rugwirobaker/hermes"
 	"github.com/rugwirobaker/hermes/api"
+	"github.com/rugwirobaker/hermes/fly"
 	"github.com/rugwirobaker/hermes/observ"
 	"github.com/rugwirobaker/hermes/sqlite"
 	"github.com/rugwirobaker/hermes/tracing"
@@ -99,14 +100,11 @@ func runServe(ctx context.Context, args []string) (err error) {
 
 	cache := hermes.NewIdempotencyKeyStore(db)
 
+	environment := fly.NewEnvironment()
+
 	log.Println("initialized hermes api")
 	api := api.New(service, events, apps, messages, cache, provider)
 	mux := chi.NewMux()
-
-	// // only attach mw.FlyReplay if we're running on fly.io
-	// if config.flyAppName != "" {
-	// 	mux.Use(middleware.FlyReplay(config.dsn))
-	// }
 
 	mux.Mount("/api", api.Handler())
 
@@ -122,12 +120,12 @@ func runServe(ctx context.Context, args []string) (err error) {
 		}
 	}()
 
-	primary, err := db.IsPrimary()
+	role, err := environment.GetNodeRole(ctx)
 	if err != nil {
-		log.Fatalf("could not determine if this is the primary node: %v", err)
+		log.Fatalf("could not get node role: %v", err)
 	}
 
-	if primary {
+	if role == "primary" {
 		log.Println("this is the primary node, starting cleanup routine")
 
 		go startCleanupRoutine(ctx, db, cleanupInterval, retention)

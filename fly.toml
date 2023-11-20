@@ -5,6 +5,9 @@ kill_signal = "SIGINT"
 kill_timeout = 5
 primary_region = "lhr"
 
+[deploy]
+  strategy = "rolling"
+
 [experimental]
   auto_rollback = true
   enable_consul = true
