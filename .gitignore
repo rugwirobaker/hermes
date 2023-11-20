@@ -4,3 +4,5 @@ dist
 hermes.json
 var
 hermes.db*
+hermes-cluster*
+hermes.secret

@@ -39,4 +39,7 @@ lease:
     key: "litefs/${FLY_APP_NAME}"
     url: "${FLY_CONSUL_URL}"
 
-  
+backup:
+  type: "litefs-cloud"
+  url: "https://litefs.fly.io"
+  auth-token: "${LITEFS_CLOUD_TOKEN}"

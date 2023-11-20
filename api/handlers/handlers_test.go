@@ -61,7 +61,7 @@ func TestSendHander(t *testing.T) {
 	sender := mock.NewMockSendService(controller)
 	sender.EXPECT().Send(gomock.Any(), gomock.Any()).Return(dummyReport, nil)
 
-	messages := mock.NewMockStore(controller)
+	messages := mock.NewMockMessageStore(controller)
 	messages.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(dummyMessage, nil)
 
 	apps := mock.NewMockAppStore(controller)
@@ -169,7 +169,7 @@ func TestDeliveryHandler(t *testing.T) {
 	ps := mock.NewMockPubsub(controller)
 	ps.EXPECT().Publish(gomock.Any(), gomock.Any())
 
-	store := mock.NewMockStore(controller)
+	store := mock.NewMockMessageStore(controller)
 	store.EXPECT().MessageByID(gomock.Any(), gomock.Any()).Return(dummyMessage, nil)
 	store.EXPECT().Update(gomock.Any(), gomock.Any()).Return(dummyMessage, nil)
 

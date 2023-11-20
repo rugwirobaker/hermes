@@ -6,3 +6,5 @@ Dockerfile
 *.json
 *.yml
 var
+hermer-cluster*
+hermes.secret
