@@ -58,6 +58,12 @@ func (db *DB) Migrate(dir Direction) (int, error) {
 					createTableIdempotencyKeys,
 				},
 			},
+			{
+				Id: "7",
+				Up: []string{
+					insertHermesApp,
+				},
+			},
 		},
 	}
 
@@ -159,3 +165,5 @@ var createTableIdempotencyKeys = `CREATE TABLE IF NOT EXISTS idempotency_keys (
 	path TEXT NOT NULL,
 	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );`
+
+var insertHermesApp = `INSERT INTO apps (name, token, sender) VALUES ('hermes', 'hermes_token', 'Hermes');`

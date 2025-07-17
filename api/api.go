@@ -42,7 +42,7 @@ func (s Server) Handler() http.Handler {
 	r.Use(mw.Tracing(s.provider))
 	r.Use(mw.WithRequestID)
 	r.Use(mw.Idempotency)
-	r.Use(mw.Caching(s.cache))
+	// r.Use(mw.Caching(s.cache))
 	r.Use(middleware.Recoverer)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {

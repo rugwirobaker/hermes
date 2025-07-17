@@ -27,4 +27,4 @@ ADD etc/litefs.yml /etc/litefs.yml
 # Ensure our mount & data directories exists before mounting with LiteFS.
 RUN mkdir -p /var/lib/litefs /mnt/litefs
 
-ENTRYPOINT ["litefs", "mount"]
+ENTRYPOINT ["hermes", "run"]

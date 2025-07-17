@@ -6,38 +6,38 @@ kill_timeout = 5
 primary_region = "lhr"
 
 [deploy]
-  strategy = "rolling"
+strategy = "rolling"
 
 [experimental]
-  auto_rollback = true
-  enable_consul = true
+auto_rollback = true
+enable_consul = true
 
 [env]
-  PRIMARY_REGION = "lhr"
-  DATABASE_URL = "/var/lib/hermes/state.db"
-  ENVIRONMENT = "test"
-  PORT = "8081"
+PRIMARY_REGION = "lhr"
+DATABASE_URL = "/var/lib/hermes/state.db"
+ENVIRONMENT = "test"
+PORT = "8081"
 
 [[mounts]]
-  source = "data_machines"
-  destination = "/data"
+source = "data_machines"
+destination = "/data"
 
 
 [http_service]
-  internal_port = 8080
-  force_https = true
-  auto_stop_machines = false
-  auto_start_machines = false
-  [http_service.concurrency]
-    type = "requests"
-    soft_limit = 200
-    hard_limit = 250
+internal_port = 8080
+force_https = true
+auto_stop_machines = "off"
+auto_start_machines = false
+[http_service.concurrency]
+type = "requests"
+soft_limit = 200
+hard_limit = 250
 
 [checks]
-  [checks.healthz]
-    type = "tcp"
-    grace_period = "4s"
-    interval = "8s"
-    port = 8080
-    timeout = "10s"
-    restart_limit = 3
+[checks.healthz]
+type = "tcp"
+grace_period = "4s"
+interval = "8s"
+port = 8080
+timeout = "10s"
+restart_limit = 3
