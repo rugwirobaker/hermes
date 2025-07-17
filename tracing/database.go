@@ -11,7 +11,7 @@ import (
 )
 
 // DBTraceDriver driver will register a new tracing sql driver and return the driver name.
-func DBTraceDriver(tp trace.TracerProvider, driver, dns, service string) (string, error) {
+func DBTraceDriver(tp trace.TracerProvider, driver, dsn, service string) (string, error) {
 
 	if service == "" {
 		service = driver + "-db-service"
@@ -20,7 +20,7 @@ func DBTraceDriver(tp trace.TracerProvider, driver, dns, service string) (string
 	// Register the otelsql wrapper for the provided database driver.
 	driverName, err := otelsql.RegisterWithSource(
 		driver,
-		dns,
+		dsn,
 		otelsql.WithDefaultAttributes(
 			semconv.ServiceNameKey.String(service),
 		),

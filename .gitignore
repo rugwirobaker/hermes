@@ -5,4 +5,5 @@ hermes.json
 var
 hermes.db*
 hermes-cluster*
-hermes.secret
+*.secret
+video.md

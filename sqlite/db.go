@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -38,6 +39,9 @@ func NewDB(dsn, server string, provider trace.TracerProvider) (*DB, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	log.Println("dsn:", dsn)
+
 	return &DB{db, dsn}, nil
 }
 

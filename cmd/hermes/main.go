@@ -33,6 +33,11 @@ func run(ctx context.Context, args []string) (err error) {
 		return runServe(ctx, args)
 	case "migrate":
 		return runMigrate(ctx, args)
+	case "run":
+		if err := runMigrate(ctx, args); err != nil {
+			return err
+		}
+		return runServe(ctx, args)
 	case "version":
 		fmt.Printf("version: %s, date: %s\n", build.Info().Version, build.Info().Date)
 		return
@@ -55,6 +60,7 @@ Usage:
 Available Commands:
 	server	  start the hermes server
 	migrate	  run database migrations
+	run 	  makes migrations and starts the server
 	version	  print the version of hermes
 `[1:])
 }

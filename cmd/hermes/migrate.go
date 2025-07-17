@@ -10,7 +10,7 @@ import (
 	"go.opentelemetry.io/otel"
 )
 
-func runMigrate(ctx context.Context, args []string) (err error) {
+func runMigrate(ctx context.Context, _ []string) (err error) {
 	config := newConfig()
 
 	provider, err := tracing.Provider(
